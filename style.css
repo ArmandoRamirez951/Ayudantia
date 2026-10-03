@@ -1,0 +1,53 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #000;
+}
+
+/* Pantalla de carga / Escaneo */
+#ui-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(10, 25, 47, 0.85); /* Fondo oscuro semitransparente que combina con tu diapositiva */
+    color: #fff;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+#ui-container h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#ui-container p {
+    font-size: 16px;
+    color: #64ffda; /* Color similar al acento de tu diapositiva */
+    text-align: center;
+}
+
+.hidden {
+    opacity: 0;
+}
+
+/* Pequeño indicador de que pasaron los 10 segundos */
+#finished-msg {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: white;
+    z-index: 20;
+    display: none;
+    font-size: 14px;
+}

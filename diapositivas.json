@@ -1,0 +1,11 @@
+{
+  "diapositivas": [
+    {
+      "id": 0,
+      "titulo": "Fases del método científico",
+      "imagen_referencia": "diapositiva1.png",
+      "mensaje_ar": "Metodo Cientifico\nActivado",
+      "duracion_animacion_segundos": 10
+    }
+  ]
+}
