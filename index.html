@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,8 @@
             align-items: center;
             min-height: 100vh;
             text-align: center;
-            overflow-y: auto; /* Habilita el scroll de arriba a abajo */
+            overflow-y: auto;
+            /* Habilita el scroll de arriba a abajo */
         }
 
         h1 {
@@ -49,22 +51,27 @@
 
         .menu-container {
             display: flex;
-            flex-direction: row; /* Botones horizontales */
+            flex-direction: row;
+            /* Botones horizontales */
             justify-content: center;
             gap: 30px;
             width: 90%;
             max-width: 600px;
-            flex-wrap: wrap; /* Si la pantalla es pequeña, bajan solos */
+            flex-wrap: wrap;
+            /* Si la pantalla es pequeña, bajan solos */
         }
 
         .btn {
             text-decoration: none;
             display: flex;
-            flex-direction: column; /* Icono arriba, texto abajo */
+            flex-direction: column;
+            /* Icono arriba, texto abajo */
             align-items: center;
             justify-content: center;
-            width: 200px;  /* Cuadros grandes */
-            height: 200px; /* Cuadros grandes */
+            width: 200px;
+            /* Cuadros grandes */
+            height: 200px;
+            /* Cuadros grandes */
             font-size: 1.25rem;
             font-weight: 600;
             border-radius: 20px;
@@ -95,11 +102,13 @@
             background: var(--secondary-hover);
             transform: translateY(-3px);
         }
-        
+
         .btn-icon {
-            font-size: 3rem; /* Icono mucho más grande */
+            font-size: 3rem;
+            /* Icono mucho más grande */
             margin-right: 0;
-            margin-bottom: 15px; /* Separación entre el icono y el texto */
+            margin-bottom: 15px;
+            /* Separación entre el icono y el texto */
         }
 
         .qr-section {
@@ -126,9 +135,9 @@
             padding: 10px;
             border-radius: 8px;
         }
-
     </style>
 </head>
+
 <body>
 
     <h1>Bienvenido al Sistema</h1>
@@ -139,12 +148,12 @@
         <a href="camara.html" class="btn btn-primary">
             <span class="btn-icon">🚀</span> Animaciones
         </a>
-        
-        <!-- Botón de administrador (Por el momento no hace nada) -->
-        <button class="btn btn-secondary" onclick="alert('Modo Administrador en construcción...')">
-            <span class="btn-icon">⚙️</span> Administrador
-        </button>
-        
+
+        <!-- Botón de administrador (Nos manda al mini-repositorio) -->
+        <a href="programacion.html" class="btn btn-secondary">
+            <span class="btn-icon">⚙️</span> Sección de programación
+        </a>
+
         <!-- Sección del Código QR Dinámico -->
         <div class="qr-section">
             <p>Escanea para ir a la cámara desde tu teléfono 👇</p>
@@ -163,10 +172,11 @@
             text: cameraUrl,
             width: 250, /* QR Más grande */
             height: 250, /* QR Más grande */
-            colorDark : "#0f172a",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
         });
     </script>
 </body>
+
 </html>
