@@ -4,222 +4,297 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sección de Animaciones</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0ea5e9;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
             --bg-color: #0f172a;
             --card-bg: #1e293b;
-            --card-hover: #2dd4bf;
-            --text-color: #f8fafc;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
         body {
             margin: 0;
-            padding: 40px 20px;
             font-family: 'Inter', sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .header {
+        /* --- NAVEGACIÓN SUPERIOR --- */
+        .navbar {
             width: 100%;
-            max-width: 900px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            width: 90%;
+            max-width: 1200px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
         }
 
-        .btn-back {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+        .nav-left, .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            transition: background 0.3s;
+            margin: 0;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
             cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
             border: none;
         }
 
-        .btn-back:hover {
-            background: rgba(255,255,255,0.2);
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .main-container {
+            width: 90%;
+            max-width: 1200px;
+            padding: 40px 0;
         }
 
         /* --- VISTA DE LISTA (TARJETAS) --- */
         #grid-view {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            width: 100%;
-            max-width: 900px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
         }
 
         .anim-card {
             background: var(--card-bg);
-            border: 2px solid transparent;
-            border-radius: 16px;
-            padding: 20px;
-            width: 250px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
         }
 
         .anim-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--card-hover);
-            box-shadow: 0 10px 15px -3px rgba(45, 212, 191, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.5);
+            border-color: var(--primary);
         }
 
-        .anim-card h3 {
+        .card-img-container {
+            width: 100%;
+            height: 160px;
+            background: #000;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .anim-card:hover .card-img-container img {
+            opacity: 1;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
             font-size: 1.1rem;
+            font-weight: 600;
             margin: 0 0 10px 0;
         }
 
-        .anim-card p {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            margin: 0 0 15px 0;
-        }
-
-        .anim-card img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-
-        /* --- VISTA DE DETALLE (EL CÓDIGO) --- */
+        /* --- VISTA DE DETALLE --- */
         #detail-view {
-            display: none; /* Oculto por defecto */
+            display: none;
             width: 100%;
-            max-width: 900px;
         }
 
-        .repo-card {
+        .repo-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .repo-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
             background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
         }
 
-        .repo-title {
-            font-size: 1.5rem;
-            color: var(--primary);
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
             margin-top: 0;
             margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
         }
 
-        .repo-content {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .repo-left {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .repo-right {
-            flex: 2;
-            min-width: 300px;
-        }
-
-        .slide-img-large {
+        .slide-preview {
             width: 100%;
             border-radius: 8px;
-            border: 2px solid rgba(255,255,255,0.1);
-            margin-bottom: 15px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
         }
 
         .file-badge {
-            display: inline-block;
-            background: #047857;
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
             padding: 8px 12px;
             border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .code-box {
             background: #020617;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             overflow-x: auto;
-            font-family: monospace;
+            font-family: 'Consolas', monospace;
             font-size: 0.85rem;
             color: #a5b4fc;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--border-color);
+            line-height: 1.5;
         }
 
-        h4 {
-            font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #cbd5e1;
+        #btn-regresar {
+            display: none;
         }
 
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <a href="index.html" class="btn-back">⬅ Volver al Menú</a>
-        <h2>Sección de Animaciones</h2>
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
+    <div class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <a href="index.html" class="btn" id="btn-inicio">⬅ Volver al Inicio</a>
+                <button class="btn" id="btn-regresar" onclick="cerrarDetalle()">⬅ Catálogo</button>
+                <h1 class="nav-title">Sección de Animaciones</h1>
+            </div>
+            <div class="nav-right">
+                <!-- Botón Agregar (Sin funcionalidad aún) -->
+                <button class="btn btn-primary" onclick="alert('Funcionalidad para agregar nuevos repositorios próximamente.')">
+                    + Agregar
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- ================= VISTA DE GALERÍA (TARJETAS) ================= -->
-    <div id="grid-view">
-        
-        <!-- Tarjeta de la Unidad 1 -->
-        <div class="anim-card" onclick="abrirDetalle()">
-            <h3>Unidad I_Fundamentos de Metodología</h3>
-            <p>Fases del método científico</p>
-            <img src="assets/diapositiva1.png" alt="Miniatura Diapositiva 1">
+    <div class="main-container">
+
+        <!-- ================= VISTA DE GALERÍA (TARJETAS) ================= -->
+        <div id="grid-view">
+            
+            <!-- TARJETA 1 -->
+            <div class="anim-card" onclick="abrirDetalle()">
+                <div class="card-img-container">
+                    <img src="Diapositivas/diapositiva1.png" alt="Miniatura Diapositiva 1">
+                </div>
+                <div class="card-body">
+                    <div class="card-subtitle">Unidad I_Fundamentos de Metodología</div>
+                    <h3 class="card-title">Fases del método científico</h3>
+                </div>
+            </div>
+
+            <!-- Futuras tarjetas aparecerán aquí -->
+
         </div>
 
-        <!-- Aquí podrás agregar más tarjetas en el futuro -->
-
-    </div>
-
-    <!-- ================= VISTA DE DETALLE (CÓDIGO) ================= -->
-    <div id="detail-view">
-        <button class="btn-back" onclick="cerrarDetalle()" style="margin-bottom: 20px;">🔙 Regresar a la lista</button>
-        
-        <div class="repo-card">
-            <h2 class="repo-title">📁 Diapositiva 1: Fases del método científico</h2>
+        <!-- ================= VISTA DE DETALLE ================= -->
+        <div id="detail-view">
             
-            <div class="repo-content">
-                <!-- Izquierda: Imagen y Archivo Mind -->
-                <div class="repo-left">
-                    <h4>Imagen de Referencia</h4>
-                    <img src="assets/diapositiva1.png" alt="Diapositiva 1" class="slide-img-large">
+            <div style="margin-bottom: 25px;">
+                <h2 style="margin: 0; font-size: 1.8rem;">Fases del método científico</h2>
+                <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">Unidad I_Fundamentos de Metodología</span>
+            </div>
+
+            <div class="repo-layout">
+                
+                <!-- Panel Izquierdo: Archivos y Referencias -->
+                <div class="panel">
+                    <h3 class="panel-title">Archivos Base</h3>
                     
-                    <h4>Archivo de Detección</h4>
-                    <div class="file-badge">🧠 targets.mind</div>
+                    <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Imagen de Activación</span>
+                    <img src="Diapositivas/diapositiva1.png" alt="Diapositiva 1" class="slide-preview">
+                    
+                    <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Patrón de Reconocimiento</span>
+                    <div class="file-badge">🧠 Modelos_AR/targets.mind</div>
                 </div>
 
-                <!-- Derecha: Código de Animación -->
-                <div class="repo-right">
-                    <h4>Código de Animación 3D (HTML)</h4>
+                <!-- Panel Derecho: Código -->
+                <div class="panel">
+                    <h3 class="panel-title">Código de Animación (A-Frame)</h3>
+                    
                     <div class="code-box">
 <pre>
 &lt;!-- Agrupamos a nuestra "Persona" y ajustamos su TAMAÑO --&gt;
@@ -242,8 +317,10 @@
 </pre>
                     </div>
                 </div>
+
             </div>
         </div>
+
     </div>
 
     <!-- SCRIPT PARA INTERCAMBIAR ENTRE VISTAS -->
@@ -251,11 +328,19 @@
         function abrirDetalle() {
             document.getElementById('grid-view').style.display = 'none';
             document.getElementById('detail-view').style.display = 'block';
+            
+            // Cambiar botones de navegación
+            document.getElementById('btn-inicio').style.display = 'none';
+            document.getElementById('btn-regresar').style.display = 'flex';
         }
 
         function cerrarDetalle() {
             document.getElementById('detail-view').style.display = 'none';
-            document.getElementById('grid-view').style.display = 'flex';
+            document.getElementById('grid-view').style.display = 'grid';
+            
+            // Restaurar botones de navegación
+            document.getElementById('btn-regresar').style.display = 'none';
+            document.getElementById('btn-inicio').style.display = 'flex';
         }
     </script>
 </body>
