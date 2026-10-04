@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Ayudantía</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #0ea5e9;
@@ -95,6 +96,31 @@
             margin-right: 15px;
         }
 
+        .qr-section {
+            margin-top: 40px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-section p {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+        }
+
+        #qrcode {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
     </style>
 </head>
 <body>
@@ -112,7 +138,29 @@
         <button class="btn btn-secondary" onclick="alert('Modo Administrador en construcción...')">
             <span class="btn-icon">⚙️</span> Administrador
         </button>
+        
+        <!-- Sección del Código QR Dinámico -->
+        <div class="qr-section">
+            <p>Escanea para ir a la cámara desde tu teléfono 👇</p>
+            <div id="qrcode"></div>
+        </div>
     </div>
 
+    <script>
+        // Esta pequeña fórmula toma el link en el que estás actualmente (ya sea el local o el de GitHub) 
+        // y le pega automáticamente 'camara.html' al final de manera inteligente.
+        const currentUrl = window.location.href;
+        const cameraUrl = new URL('camara.html', currentUrl).href;
+
+        // Generamos el Código QR
+        new QRCode(document.getElementById("qrcode"), {
+            text: cameraUrl,
+            width: 150,
+            height: 150,
+            colorDark : "#0f172a",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    </script>
 </body>
 </html>
