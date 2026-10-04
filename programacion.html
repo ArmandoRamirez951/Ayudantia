@@ -333,7 +333,7 @@
         <div id="grid-view">
             
             <!-- TARJETA 1 -->
-            <div class="anim-card" onclick="abrirDetalle()">
+            <div class="anim-card" onclick="abrirDetalle('1')">
                 <div class="card-img-container">
                     <img src="Diapositivas/diapositiva_1.png" alt="Miniatura Diapositiva 1">
                 </div>
@@ -349,30 +349,30 @@
 
         <!-- ================= VISTA DE DETALLE ================= -->
         <div id="detail-view">
-            
-            <div style="margin-bottom: 25px;">
-                <h2 style="margin: 0; font-size: 1.8rem;">Fases del método científico</h2>
-                <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">Unidad I_Fundamentos de Metodología</span>
-            </div>
-
-            <div class="repo-layout">
-                
-                <!-- Panel Izquierdo: Archivos y Referencias -->
-                <div class="panel">
-                    <h3 class="panel-title">Archivos Base</h3>
-                    
-                    <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Imagen de Activación</span>
-                    <img src="Diapositivas/diapositiva_1.png" alt="Diapositiva 1" class="slide-preview">
-                    
-                    <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Patrón de Reconocimiento</span>
-                    <div class="file-badge">🧠 Modelos_AR/diapositiva_1.mind</div>
+            <div id="detalle-1" class="detalle-animacion">
+                <div style="margin-bottom: 25px;">
+                    <h2 style="margin: 0; font-size: 1.8rem;">Fases del método científico</h2>
+                    <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">Unidad I_Fundamentos de Metodología</span>
                 </div>
 
-                <!-- Panel Derecho: Código -->
-                <div class="panel">
-                    <h3 class="panel-title">Código de Animación (A-Frame)</h3>
+                <div class="repo-layout">
                     
-                    <div class="code-box">
+                    <!-- Panel Izquierdo: Archivos y Referencias -->
+                    <div class="panel">
+                        <h3 class="panel-title">Archivos Base</h3>
+                        
+                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Imagen de Activación</span>
+                        <img src="Diapositivas/diapositiva_1.png" alt="Diapositiva 1" class="slide-preview">
+                        
+                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Patrón de Reconocimiento</span>
+                        <div class="file-badge">🧠 Modelos_AR/diapositiva_1.mind</div>
+                    </div>
+
+                    <!-- Panel Derecho: Código -->
+                    <div class="panel">
+                        <h3 class="panel-title">Código de Animación (A-Frame)</h3>
+                        
+                        <div class="code-box">
 <pre>
 &lt;!-- Agrupamos a nuestra "Persona" y ajustamos su TAMAÑO --&gt;
 &lt;a-entity id="personaje" position="0 -0.2 0.1" scale="0.3 0.3 0.3"&gt;
@@ -392,10 +392,11 @@
 
 &lt;/a-entity&gt;
 </pre>
+                        </div>
                     </div>
                 </div>
-
             </div>
+            <!-- Futuros detalles aparecerán aquí -->
         </div>
 
     </div>
@@ -407,12 +408,12 @@
             
             <div class="form-group">
                 <label>Nombre de la presentación</label>
-                <input type="text" placeholder="Ej. Unidad II_Sistemas...">
+                <input type="text" id="input-presentacion" placeholder="Ej. Unidad II_Sistemas...">
             </div>
 
             <div class="form-group">
                 <label>Nombre de la diapositiva</label>
-                <input type="text" placeholder="Ej. Tipos de investigación">
+                <input type="text" id="input-diapositiva" placeholder="Ej. Tipos de investigación">
             </div>
 
             <div class="form-group">
@@ -441,9 +442,16 @@
     <!-- SCRIPT PARA INTERCAMBIAR ENTRE VISTAS Y ABRIR MODAL -->
     <script>
         // Funciones del Catálogo
-        function abrirDetalle() {
+        function abrirDetalle(id) {
             document.getElementById('grid-view').style.display = 'none';
             document.getElementById('detail-view').style.display = 'block';
+            
+            // Ocultar todas las tarjetas de detalle
+            const detalles = document.querySelectorAll('.detalle-animacion');
+            detalles.forEach(d => d.style.display = 'none');
+            
+            // Mostrar solo la correspondiente
+            document.getElementById('detalle-' + id).style.display = 'block';
             
             // Cambiar botones de navegación
             document.getElementById('btn-inicio').style.display = 'none';
@@ -484,14 +492,45 @@
         }
 
         // Lógica para el botón Guardar
-        function guardarAnimacion() {
-            // Pedir confirmación al usuario
-            const respuesta = confirm("¿Estás seguro de que deseas guardar esta nueva animación?");
+        async function guardarAnimacion() {
+            const respuesta = confirm("¿Estás seguro de que deseas guardar esta nueva animación en tu sistema local?");
             
             if (respuesta) {
-                // Aquí el usuario dijo que Sí
-                alert("Simulación de guardado exitosa. (Lee el chat para entender cómo se guardan los archivos reales).");
-                cerrarModal();
+                const nombrePres = document.getElementById('input-presentacion').value;
+                const nombreDiap = document.getElementById('input-diapositiva').value;
+                const foto = document.getElementById('input-foto').files[0];
+                const mindFile = document.getElementById('input-mind').files[0];
+                const codigo = document.getElementById('input-codigo').value;
+
+                if(!nombrePres || !nombreDiap || !foto || !mindFile || !codigo) {
+                    alert("Por favor llena todos los campos y selecciona ambos archivos.");
+                    return;
+                }
+
+                // Preparamos los datos
+                const formData = new FormData();
+                formData.append('nombrePresentacion', nombrePres);
+                formData.append('nombreDiapositiva', nombreDiap);
+                formData.append('foto', foto);
+                formData.append('mindFile', mindFile);
+                formData.append('codigoAnimacion', codigo);
+
+                try {
+                    const response = await fetch('/api/upload-animacion', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if(response.ok) {
+                        alert("¡Archivos guardados correctamente en tu computadora! Recarga la página para ver la nueva tarjeta.");
+                        cerrarModal();
+                        window.location.reload();
+                    } else {
+                        alert("Ocurrió un error al guardar en el servidor.");
+                    }
+                } catch (error) {
+                    alert("Error de conexión. Asegúrate de ejecutar esto con 'node server.js'.");
+                }
             }
         }
     </script>
