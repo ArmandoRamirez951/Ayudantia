@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sección de Programación</title>
+    <title>Sección de Animaciones</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #0ea5e9;
             --bg-color: #0f172a;
             --card-bg: #1e293b;
+            --card-hover: #2dd4bf;
             --text-color: #f8fafc;
         }
 
@@ -26,7 +27,7 @@
 
         .header {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -41,18 +42,76 @@
             border-radius: 8px;
             font-weight: 600;
             transition: background 0.3s;
+            cursor: pointer;
+            border: none;
         }
 
         .btn-back:hover {
             background: rgba(255,255,255,0.2);
         }
 
+        /* --- VISTA DE LISTA (TARJETAS) --- */
+        #grid-view {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            width: 100%;
+            max-width: 900px;
+            justify-content: center;
+        }
+
+        .anim-card {
+            background: var(--card-bg);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 20px;
+            width: 250px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .anim-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--card-hover);
+            box-shadow: 0 10px 15px -3px rgba(45, 212, 191, 0.2);
+        }
+
+        .anim-card h3 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 0 0 10px 0;
+        }
+
+        .anim-card p {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin: 0 0 15px 0;
+        }
+
+        .anim-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+
+        /* --- VISTA DE DETALLE (EL CÓDIGO) --- */
+        #detail-view {
+            display: none; /* Oculto por defecto */
+            width: 100%;
+            max-width: 900px;
+        }
+
         .repo-card {
             background: var(--card-bg);
             border-radius: 16px;
             padding: 30px;
-            width: 100%;
-            max-width: 800px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255,255,255,0.05);
         }
@@ -82,7 +141,7 @@
             min-width: 300px;
         }
 
-        .slide-img {
+        .slide-img-large {
             width: 100%;
             border-radius: 8px;
             border: 2px solid rgba(255,255,255,0.1);
@@ -111,7 +170,7 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        h3 {
+        h4 {
             font-size: 1.1rem;
             margin-top: 0;
             margin-bottom: 10px;
@@ -124,27 +183,44 @@
 
     <div class="header">
         <a href="index.html" class="btn-back">⬅ Volver al Menú</a>
-        <h2>Mini Repositorio</h2>
+        <h2>Sección de Animaciones</h2>
     </div>
 
-    <!-- CUADRO DE LA DIAPOSITIVA 1 -->
-    <div class="repo-card">
-        <h2 class="repo-title">📁 Diapositiva 1: Fases del método científico</h2>
+    <!-- ================= VISTA DE GALERÍA (TARJETAS) ================= -->
+    <div id="grid-view">
         
-        <div class="repo-content">
-            <!-- Izquierda: Imagen y Archivo Mind -->
-            <div class="repo-left">
-                <h3>Imagen de Referencia</h3>
-                <img src="diapositiva1.png" alt="Diapositiva 1" class="slide-img">
-                
-                <h3>Archivo de Detección</h3>
-                <div class="file-badge">🧠 targets.mind</div>
-            </div>
+        <!-- Tarjeta de la Unidad 1 -->
+        <div class="anim-card" onclick="abrirDetalle()">
+            <h3>Unidad I_Fundamentos de Metodología</h3>
+            <p>Fases del método científico</p>
+            <img src="assets/diapositiva1.png" alt="Miniatura Diapositiva 1">
+        </div>
 
-            <!-- Derecha: Código de Animación -->
-            <div class="repo-right">
-                <h3>Código de Animación 3D (HTML)</h3>
-                <div class="code-box">
+        <!-- Aquí podrás agregar más tarjetas en el futuro -->
+
+    </div>
+
+    <!-- ================= VISTA DE DETALLE (CÓDIGO) ================= -->
+    <div id="detail-view">
+        <button class="btn-back" onclick="cerrarDetalle()" style="margin-bottom: 20px;">🔙 Regresar a la lista</button>
+        
+        <div class="repo-card">
+            <h2 class="repo-title">📁 Diapositiva 1: Fases del método científico</h2>
+            
+            <div class="repo-content">
+                <!-- Izquierda: Imagen y Archivo Mind -->
+                <div class="repo-left">
+                    <h4>Imagen de Referencia</h4>
+                    <img src="assets/diapositiva1.png" alt="Diapositiva 1" class="slide-img-large">
+                    
+                    <h4>Archivo de Detección</h4>
+                    <div class="file-badge">🧠 targets.mind</div>
+                </div>
+
+                <!-- Derecha: Código de Animación -->
+                <div class="repo-right">
+                    <h4>Código de Animación 3D (HTML)</h4>
+                    <div class="code-box">
 <pre>
 &lt;!-- Agrupamos a nuestra "Persona" y ajustamos su TAMAÑO --&gt;
 &lt;a-entity id="personaje" position="0 -0.2 0.1" scale="0.3 0.3 0.3"&gt;
@@ -164,10 +240,23 @@
 
 &lt;/a-entity&gt;
 </pre>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPT PARA INTERCAMBIAR ENTRE VISTAS -->
+    <script>
+        function abrirDetalle() {
+            document.getElementById('grid-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+        }
+
+        function cerrarDetalle() {
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('grid-view').style.display = 'flex';
+        }
+    </script>
 </body>
 </html>
