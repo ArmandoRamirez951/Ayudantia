@@ -14,24 +14,57 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(10, 25, 47, 0.85); /* Fondo oscuro semitransparente que combina con tu diapositiva */
     color: #fff;
     z-index: 10;
     pointer-events: none;
     transition: opacity 0.5s ease;
 }
 
-#ui-container h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
+.scanner-text {
+    position: absolute;
+    top: 15%;
+    width: 90%;
     text-align: center;
+    z-index: 20;
 }
 
-#ui-container p {
-    font-size: 16px;
-    color: #64ffda; /* Color similar al acento de tu diapositiva */
-    text-align: center;
+.scanner-text h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
+
+.scanner-text p {
+    font-size: 15px;
+    color: #64ffda;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    margin: 0;
+}
+
+/* El recuadro del escáner en el centro */
+.scanner-frame {
+    width: 300px;
+    height: 200px; /* Tamaño rectangular como la diapositiva */
+    position: relative;
+    /* El "truco" para oscurecer todo lo que está FUERA de este cuadro */
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    border-radius: 8px;
+    z-index: 15;
+}
+
+/* Esquinas decorativas del escáner */
+.corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: #64ffda; /* Color del borde de las esquinas */
+    border-style: solid;
+}
+
+.corner.tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 8px; }
+.corner.tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 8px; }
+.corner.bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 8px; }
+.corner.br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 8px; }
 
 .hidden {
     opacity: 0;
