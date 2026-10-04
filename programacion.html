@@ -45,6 +45,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative; /* Necesario para centrar el título */
         }
 
         .nav-left, .nav-right {
@@ -54,9 +55,13 @@
         }
 
         .nav-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.8rem; /* Letras más grandes */
+            font-weight: 800;
             margin: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
         }
 
         .btn {
@@ -309,8 +314,10 @@
             <div class="nav-left">
                 <a href="index.html" class="btn" id="btn-inicio">⬅ Volver al Inicio</a>
                 <button class="btn" id="btn-regresar" onclick="cerrarDetalle()">⬅ Catálogo</button>
-                <h1 class="nav-title">Sección de Animaciones</h1>
             </div>
+            
+            <h1 class="nav-title">Sección de Programación</h1>
+
             <div class="nav-right">
                 <!-- Botón Agregar que abre el modal -->
                 <button class="btn btn-primary" onclick="abrirModal()">
