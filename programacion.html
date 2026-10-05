@@ -26,7 +26,6 @@
             align-items: center;
         }
 
-        /* --- NAVEGACIÓN SUPERIOR --- */
         .navbar {
             width: 100%;
             background-color: var(--card-bg);
@@ -45,7 +44,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative; /* Necesario para centrar el título */
+            position: relative;
         }
 
         .nav-left, .nav-right {
@@ -55,7 +54,7 @@
         }
 
         .nav-title {
-            font-size: 1.8rem; /* Letras más grandes */
+            font-size: 1.8rem;
             font-weight: 800;
             margin: 0;
             position: absolute;
@@ -94,14 +93,22 @@
             background-color: var(--primary-hover);
         }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
         .main-container {
             width: 90%;
             max-width: 1200px;
             padding: 40px 0;
         }
 
-        /* --- VISTA DE LISTA (TARJETAS) --- */
         #grid-view {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -164,7 +171,6 @@
             margin: 0 0 10px 0;
         }
 
-        /* --- VISTA DE DETALLE --- */
         #detail-view {
             display: none;
             width: 100%;
@@ -230,11 +236,10 @@
             line-height: 1.5;
         }
 
-        #btn-regresar {
+        #btn-regresar, #action-buttons {
             display: none;
         }
 
-        /* --- MODAL (FORMULARIO AGREGAR) --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -252,8 +257,8 @@
             border-radius: 12px;
             width: 90%;
             max-width: 500px;
-            max-height: 90vh; /* Permite que el modal no sea más alto que la pantalla */
-            overflow-y: auto; /* Agrega barra espaciadora vertical (scroll) si es necesario */
+            max-height: 90vh;
+            overflow-y: auto;
             padding: 30px;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
             display: flex;
@@ -305,12 +310,10 @@
             gap: 15px;
             margin-top: 10px;
         }
-
     </style>
 </head>
 <body>
 
-    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
     <div class="navbar">
         <div class="nav-content">
             <div class="nav-left">
@@ -320,93 +323,29 @@
             
             <h1 class="nav-title">Sección de Programación</h1>
 
-            <div class="nav-right">
-                <!-- Botón Agregar que abre el modal -->
-                <button class="btn btn-primary" onclick="abrirModal()">
-                    + Agregar
-                </button>
+            <div class="nav-right" id="nav-actions">
+                <button class="btn btn-primary" onclick="abrirModal()">+ Agregar</button>
+            </div>
+
+            <div class="nav-right" id="action-buttons">
+                <button class="btn" onclick="editarAnimacion()">✏️ Editar</button>
+                <button class="btn btn-danger" onclick="eliminarAnimacion()">🗑️ Eliminar</button>
             </div>
         </div>
     </div>
 
     <div class="main-container">
-
-        <!-- ================= VISTA DE GALERÍA (TARJETAS) ================= -->
-        <div id="grid-view">
-            
-            <!-- TARJETA 1 -->
-            <div class="anim-card" onclick="abrirDetalle('1')">
-                <div class="card-img-container">
-                    <img src="Diapositivas/diapositiva_1.png" alt="Miniatura Diapositiva 1">
-                </div>
-                <div class="card-body">
-                    <div class="card-subtitle">Unidad I_Fundamentos de Metodología</div>
-                    <h3 class="card-title">Fases del método científico</h3>
-                </div>
-            </div>
-
-            <!-- Futuras tarjetas aparecerán aquí -->
-
-        </div>
-
-        <!-- ================= VISTA DE DETALLE ================= -->
-        <div id="detail-view">
-            <div id="detalle-1" class="detalle-animacion">
-                <div style="margin-bottom: 25px;">
-                    <h2 style="margin: 0; font-size: 1.8rem;">Fases del método científico</h2>
-                    <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">Unidad I_Fundamentos de Metodología</span>
-                </div>
-
-                <div class="repo-layout">
-                    
-                    <!-- Panel Izquierdo: Archivos y Referencias -->
-                    <div class="panel">
-                        <h3 class="panel-title">Archivos Base</h3>
-                        
-                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Imagen de Activación</span>
-                        <img src="Diapositivas/diapositiva_1.png" alt="Diapositiva 1" class="slide-preview">
-                        
-                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Patrón de Reconocimiento</span>
-                        <div class="file-badge">🧠 Modelos_AR/diapositiva_1.mind</div>
-                    </div>
-
-                    <!-- Panel Derecho: Código -->
-                    <div class="panel">
-                        <h3 class="panel-title">Código de Animación (A-Frame)</h3>
-                        
-                        <div class="code-box">
-<pre>
-&lt;!-- Agrupamos a nuestra "Persona" y ajustamos su TAMAÑO --&gt;
-&lt;a-entity id="personaje" position="0 -0.2 0.1" scale="0.3 0.3 0.3"&gt;
-    
-    &lt;!-- Globo de Texto --&gt;
-    &lt;a-text value="¡Bienvenidos!" position="0 2.5 0" ...&gt;&lt;/a-text&gt;
-
-    &lt;!-- Cabeza --&gt;
-    &lt;a-sphere position="0 1.5 0" radius="0.4" color="#ffccaa"&gt;&lt;/a-sphere&gt;
-    
-    &lt;!-- Cuerpo --&gt;
-    &lt;a-cylinder position="0 0.5 0" radius="0.35" height="1.2" color="#0066cc"&gt;&lt;/a-cylinder&gt;
-    
-    &lt;!-- Brazos --&gt;
-    &lt;a-cylinder position="-0.5 0.8 0" rotation="0 0 45" ...&gt;&lt;/a-cylinder&gt;
-    &lt;a-cylinder position="0.5 0.5 0" rotation="0 0 -20" ...&gt;&lt;/a-cylinder&gt;
-
-&lt;/a-entity&gt;
-</pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Futuros detalles aparecerán aquí -->
-        </div>
-
+        <!-- VISTA DE GALERÍA GENERADA DINÁMICAMENTE -->
+        <div id="grid-view"></div>
+        <!-- VISTA DE DETALLE GENERADA DINÁMICAMENTE -->
+        <div id="detail-view"></div>
     </div>
 
-    <!-- ================= VENTANA MODAL (FORMULARIO) ================= -->
+    <!-- VENTANA MODAL (FORMULARIO CREAR/EDITAR) -->
     <div class="modal-overlay" id="modal-agregar">
         <div class="modal-content">
-            <h2>Agregar Nueva Animación</h2>
+            <h2 id="modal-title">Agregar Nueva Animación</h2>
+            <input type="hidden" id="input-id">
             
             <div class="form-group">
                 <label>Nombre de la presentación</label>
@@ -420,7 +359,9 @@
 
             <div class="form-group">
                 <label>Foto de la diapositiva</label>
-                <input type="file" id="input-foto" accept="image/png, image/jpeg" onchange="mostrarVistaPrevia()">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="input-foto" accept="image/png, image/jpeg" onchange="mostrarVistaPrevia()">
+                </div>
                 <div id="preview-container" style="display: none; position: relative; margin-top: 10px;">
                     <img id="preview-img" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-color); display: block;">
                     <button type="button" onclick="quitarFoto()" style="position: absolute; top: 10px; right: 10px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: bold;">X Quitar</button>
@@ -447,49 +388,138 @@
         </div>
     </div>
 
-    <!-- SCRIPT PARA INTERCAMBIAR ENTRE VISTAS Y ABRIR MODAL -->
+    <!-- SCRIPT CMS DINÁMICO -->
     <script>
-        // Funciones del Catálogo
+        let dbData = [];
+        let currentItem = null;
+
+        // 1. Cargar datos al iniciar
+        async function cargarDatos() {
+            try {
+                // Truco para evitar cache en Github Pages durante el desarrollo: ?t=Date.now()
+                const res = await fetch('diapositivas.json?t=' + Date.now());
+                const json = await res.json();
+                dbData = json.diapositivas;
+                renderGrid();
+            } catch (err) {
+                console.error("Error cargando la base de datos JSON", err);
+            }
+        }
+
+        // 2. Renderizar Cuadrícula
+        function renderGrid() {
+            const grid = document.getElementById('grid-view');
+            grid.innerHTML = '';
+            
+            dbData.forEach(item => {
+                grid.innerHTML += `
+                <div class="anim-card" onclick="abrirDetalle('${item.id}')">
+                    <div class="card-img-container">
+                        <img src="${item.foto}" alt="${item.nombreDiapositiva}">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-subtitle">${item.nombrePresentacion}</div>
+                        <h3 class="card-title">${item.nombreDiapositiva}</h3>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // 3. Abrir Detalle
         function abrirDetalle(id) {
+            currentItem = dbData.find(d => d.id == id);
+            if(!currentItem) return;
+
+            const detailView = document.getElementById('detail-view');
+            
+            // Reemplazar caracteres especiales HTML para que se vea como texto en el pre
+            const htmlCodeSafe = currentItem.codigoAnimacion.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            detailView.innerHTML = `
+                <div style="margin-bottom: 25px;">
+                    <h2 style="margin: 0; font-size: 1.8rem;">${currentItem.nombreDiapositiva}</h2>
+                    <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">${currentItem.nombrePresentacion}</span>
+                </div>
+                <div class="repo-layout">
+                    <div class="panel">
+                        <h3 class="panel-title">Archivos Base</h3>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Imagen de Activación</span>
+                        <img src="${currentItem.foto}" alt="${currentItem.nombreDiapositiva}" class="slide-preview">
+                        <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Patrón de Reconocimiento</span>
+                        <div class="file-badge">🧠 ${currentItem.mindFile}</div>
+                    </div>
+                    <div class="panel">
+                        <h3 class="panel-title">Código de Animación (A-Frame)</h3>
+                        <div class="code-box">
+<pre>${htmlCodeSafe}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             document.getElementById('grid-view').style.display = 'none';
             document.getElementById('detail-view').style.display = 'block';
             
-            // Ocultar todas las tarjetas de detalle
-            const detalles = document.querySelectorAll('.detalle-animacion');
-            detalles.forEach(d => d.style.display = 'none');
-            
-            // Mostrar solo la correspondiente
-            document.getElementById('detalle-' + id).style.display = 'block';
-            
-            // Cambiar botones de navegación
             document.getElementById('btn-inicio').style.display = 'none';
+            document.getElementById('nav-actions').style.display = 'none';
+            
             document.getElementById('btn-regresar').style.display = 'flex';
+            document.getElementById('action-buttons').style.display = 'flex';
         }
 
+        // 4. Cerrar Detalle
         function cerrarDetalle() {
+            currentItem = null;
             document.getElementById('detail-view').style.display = 'none';
             document.getElementById('grid-view').style.display = 'grid';
             
-            // Restaurar botones de navegación
             document.getElementById('btn-regresar').style.display = 'none';
+            document.getElementById('action-buttons').style.display = 'none';
+            
             document.getElementById('btn-inicio').style.display = 'flex';
+            document.getElementById('nav-actions').style.display = 'flex';
         }
 
-        // Funciones del Modal (Formulario)
-        function abrirModal() {
+        // 5. Modal Funciones
+        function abrirModal(editMode = false) {
             document.getElementById('modal-agregar').style.display = 'flex';
+            
+            if (editMode && currentItem) {
+                document.getElementById('modal-title').innerText = "Editar Animación";
+                document.getElementById('input-id').value = currentItem.id;
+                document.getElementById('input-presentacion').value = currentItem.nombrePresentacion;
+                document.getElementById('input-diapositiva').value = currentItem.nombreDiapositiva;
+                document.getElementById('input-codigo').value = currentItem.codigoAnimacion;
+                
+                // Mostrar foto actual en vista previa
+                const previewImg = document.getElementById('preview-img');
+                const previewContainer = document.getElementById('preview-container');
+                previewImg.src = currentItem.foto;
+                previewContainer.style.display = 'block';
+            } else {
+                document.getElementById('modal-title').innerText = "Agregar Nueva Animación";
+                document.getElementById('input-id').value = "";
+                document.getElementById('input-presentacion').value = "";
+                document.getElementById('input-diapositiva').value = "";
+                document.getElementById('input-codigo').value = "";
+                quitarFoto();
+                quitarMind();
+            }
         }
 
         function cerrarModal() {
             document.getElementById('modal-agregar').style.display = 'none';
         }
 
-        // Mostrar vista previa de la foto
+        function editarAnimacion() {
+            abrirModal(true);
+        }
+
+        // Utilidades de la UI (Fotos y Mind)
         function mostrarVistaPrevia() {
             const input = document.getElementById('input-foto');
             const previewContainer = document.getElementById('preview-container');
             const previewImg = document.getElementById('preview-img');
-            
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -500,77 +530,95 @@
             }
         }
 
-        // Quitar la foto seleccionada
         function quitarFoto() {
-            const input = document.getElementById('input-foto');
-            const previewContainer = document.getElementById('preview-container');
-            
-            input.value = ''; // Borra el archivo seleccionado
-            previewContainer.style.display = 'none'; // Oculta la vista previa
+            document.getElementById('input-foto').value = '';
+            document.getElementById('preview-container').style.display = 'none';
         }
 
-        // Mostrar botón de quitar para el archivo .mind
         function verificarArchivoMind() {
-            const input = document.getElementById('input-mind');
             const btn = document.getElementById('btn-quitar-mind');
-            if (input.files && input.files.length > 0) {
-                btn.style.display = 'block';
-            } else {
-                btn.style.display = 'none';
-            }
+            btn.style.display = document.getElementById('input-mind').files.length > 0 ? 'block' : 'none';
         }
 
-        // Quitar el archivo .mind seleccionado
         function quitarMind() {
-            const input = document.getElementById('input-mind');
-            const btn = document.getElementById('btn-quitar-mind');
-            
-            input.value = ''; // Borra el archivo seleccionado
-            btn.style.display = 'none'; // Oculta el botón
+            document.getElementById('input-mind').value = '';
+            document.getElementById('btn-quitar-mind').style.display = 'none';
         }
 
-        // Lógica para el botón Guardar
+        // 6. Enviar Formulario (Crear / Editar)
         async function guardarAnimacion() {
-            const respuesta = confirm("¿Estás seguro de que deseas guardar esta nueva animación en tu sistema local?");
+            const id = document.getElementById('input-id').value;
+            const esEdicion = id !== "";
+            const confirmMsg = esEdicion ? "¿Guardar cambios en esta animación?" : "¿Guardar esta nueva animación?";
             
-            if (respuesta) {
-                const nombrePres = document.getElementById('input-presentacion').value;
-                const nombreDiap = document.getElementById('input-diapositiva').value;
-                const foto = document.getElementById('input-foto').files[0];
-                const mindFile = document.getElementById('input-mind').files[0];
-                const codigo = document.getElementById('input-codigo').value;
+            if (!confirm(confirmMsg)) return;
 
-                if(!nombrePres || !nombreDiap || !foto || !mindFile || !codigo) {
-                    alert("Por favor llena todos los campos y selecciona ambos archivos.");
-                    return;
+            const nombrePres = document.getElementById('input-presentacion').value;
+            const nombreDiap = document.getElementById('input-diapositiva').value;
+            const foto = document.getElementById('input-foto').files[0];
+            const mindFile = document.getElementById('input-mind').files[0];
+            const codigo = document.getElementById('input-codigo').value;
+
+            if(!nombrePres || !nombreDiap || !codigo) {
+                alert("Por favor llena todos los campos de texto.");
+                return;
+            }
+
+            if(!esEdicion && (!foto || !mindFile)) {
+                alert("Para una NUEVA animación debes seleccionar la foto y el archivo .mind.");
+                return;
+            }
+
+            const formData = new FormData();
+            if (esEdicion) formData.append('id', id);
+            formData.append('nombrePresentacion', nombrePres);
+            formData.append('nombreDiapositiva', nombreDiap);
+            if(foto) formData.append('foto', foto);
+            if(mindFile) formData.append('mindFile', mindFile);
+            formData.append('codigoAnimacion', codigo);
+
+            try {
+                const response = await fetch('/api/upload-animacion', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if(response.ok) {
+                    alert("¡Guardado correctamente!");
+                    window.location.reload();
+                } else {
+                    alert("Error en el servidor local.");
                 }
-
-                // Preparamos los datos
-                const formData = new FormData();
-                formData.append('nombrePresentacion', nombrePres);
-                formData.append('nombreDiapositiva', nombreDiap);
-                formData.append('foto', foto);
-                formData.append('mindFile', mindFile);
-                formData.append('codigoAnimacion', codigo);
-
-                try {
-                    const response = await fetch('/api/upload-animacion', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if(response.ok) {
-                        alert("¡Archivos guardados correctamente en tu computadora! Recarga la página para ver la nueva tarjeta.");
-                        cerrarModal();
-                        window.location.reload();
-                    } else {
-                        alert("Ocurrió un error al guardar en el servidor.");
-                    }
-                } catch (error) {
-                    alert("Error de conexión. Asegúrate de ejecutar esto con 'node server.js'.");
-                }
+            } catch (error) {
+                alert("Error de conexión. ¿Está corriendo node server.js?");
             }
         }
+
+        // 7. Eliminar Animación
+        async function eliminarAnimacion() {
+            if(!currentItem) return;
+            if(!confirm("⚠️ ¿Peligro: Estás seguro de eliminar esta animación del sistema?")) return;
+
+            try {
+                const response = await fetch('/api/delete-animacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentItem.id })
+                });
+
+                if(response.ok) {
+                    alert("¡Eliminado correctamente!");
+                    window.location.reload();
+                } else {
+                    alert("Error en el servidor local.");
+                }
+            } catch (error) {
+                alert("Error de conexión.");
+            }
+        }
+
+        // Iniciar
+        window.onload = cargarDatos;
     </script>
 </body>
 </html>

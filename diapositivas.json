@@ -1,11 +1,12 @@
 {
   "diapositivas": [
     {
-      "id": 0,
-      "titulo": "Fases del método científico",
-      "imagen_referencia": "Diapositivas/diapositiva_1.png",
-      "mensaje_ar": "Metodo Cientifico\nActivado",
-      "duracion_animacion_segundos": 10
+      "id": "1",
+      "nombrePresentacion": "Unidad I_Fundamentos de Metodología",
+      "nombreDiapositiva": "Fases del método científico",
+      "foto": "Diapositivas/diapositiva_1.png",
+      "mindFile": "Modelos_AR/diapositiva_1.mind",
+      "codigoAnimacion": "<!-- Agrupamos a nuestra \"Persona\" y ajustamos su TAMAÑO -->\n<a-entity id=\"personaje\" position=\"0 -0.2 0.1\" scale=\"0.3 0.3 0.3\">\n    \n    <!-- Globo de Texto -->\n    <a-text value=\"¡Bienvenidos!\" position=\"0 2.5 0\" ...></a-text>\n\n    <!-- Cabeza -->\n    <a-sphere position=\"0 1.5 0\" radius=\"0.4\" color=\"#ffccaa\"></a-sphere>\n    \n    <!-- Cuerpo -->\n    <a-cylinder position=\"0 0.5 0\" radius=\"0.35\" height=\"1.2\" color=\"#0066cc\"></a-cylinder>\n    \n    <!-- Brazos -->\n    <a-cylinder position=\"-0.5 0.8 0\" rotation=\"0 0 45\" ...></a-cylinder>\n    <a-cylinder position=\"0.5 0.5 0\" rotation=\"0 0 -20\" ...></a-cylinder>\n\n</a-entity>"
     }
   ]
 }
