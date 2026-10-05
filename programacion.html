@@ -370,6 +370,7 @@
             resize: vertical;
             min-height: 100px;
             font-family: monospace;
+            font-size: 0.65rem; /* Letra aún más chica para el código */
         }
 
         .form-group input[type="file"] {
@@ -646,15 +647,30 @@
         async function guardarAnimacion() {
             const id = document.getElementById('input-id').value;
             const esEdicion = id !== "";
-            const confirmMsg = esEdicion ? "¿Guardar cambios en esta animación?" : "¿Guardar esta nueva animación?";
             
-            if (!confirm(confirmMsg)) return;
-
             const nombrePres = document.getElementById('input-presentacion').value;
             const nombreDiap = document.getElementById('input-diapositiva').value;
             const foto = document.getElementById('input-foto').files[0];
             const mindFile = document.getElementById('input-mind').files[0];
             const codigo = document.getElementById('input-codigo').value;
+
+            // --- REGLA: Si es edición y no modificó NADA, bloqueamos el guardado ---
+            if (esEdicion && currentItem) {
+                const sinCambiosTexto = (
+                    nombrePres === currentItem.nombrePresentacion &&
+                    nombreDiap === currentItem.nombreDiapositiva &&
+                    codigo === currentItem.codigoAnimacion
+                );
+                const sinArchivosNuevos = (!foto && !mindFile);
+
+                if (sinCambiosTexto && sinArchivosNuevos) {
+                    alert("No se modificó nada. Cambia algún texto o sube un archivo nuevo para poder actualizar el repositorio.");
+                    return;
+                }
+            }
+
+            const confirmMsg = esEdicion ? "¿Guardar cambios en esta animación?" : "¿Guardar esta nueva animación?";
+            if (!confirm(confirmMsg)) return;
 
             if(!nombrePres || !nombreDiap || !codigo) {
                 alert("Error: Todos los campos de texto son obligatorios.");
