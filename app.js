@@ -5,9 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const finishedMsg = document.getElementById('finished-msg');
     
     // Elemento del texto flotante en 3D
+    // Elemento del texto flotante en 3D
     const arText = document.querySelector('a-text');
     
-    let animationTimer;
     let configActual = { duracion: 10000, mensaje: "Metodo Cientifico Activado" };
 
     // Cargar la configuración desde el JSON
@@ -34,24 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
         arContent.setAttribute('visible', 'true'); // Mostrar animación
         finishedMsg.style.display = 'none';
         
-        clearTimeout(animationTimer);
-        
-        // Lógica para la duración (basada en el JSON)
-        animationTimer = setTimeout(() => {
-            arContent.setAttribute('visible', 'false');
-            finishedMsg.style.display = 'block'; 
-            
-            setTimeout(() => {
-                finishedMsg.style.display = 'none';
-            }, 3000);
-        }, configActual.duracion);
+        // El temporizador se ha eliminado para que la animación se reproduzca en bucle infinito
+        // mientras la cámara siga enfocando la diapositiva.
     });
 
     // Cuando la imagen se pierde de vista
     sceneEl.addEventListener("targetLost", event => {
         console.log("Se perdió la diapositiva de vista.");
         uiContainer.classList.remove('hidden'); // Volver a pedir que apunte
-        clearTimeout(animationTimer);
         finishedMsg.style.display = 'none';
     });
 });
