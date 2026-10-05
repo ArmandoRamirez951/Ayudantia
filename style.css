@@ -6,6 +6,11 @@ body {
     background-color: #000;
 }
 
+/* Forzar que el canvas 3D (donde sale el robot) dibuje SOBRE el cuadro UI */
+.a-canvas {
+    z-index: 999 !important;
+}
+
 /* Pantalla de carga / Escaneo */
 #ui-container {
     position: absolute;
