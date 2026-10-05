@@ -5,25 +5,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const finishedMsg = document.getElementById('finished-msg');
     
     // Elemento del texto flotante en 3D
-    // Elemento del texto flotante en 3D
-    const arText = document.querySelector('a-text');
-    
-    let configActual = { duracion: 10000, mensaje: "Metodo Cientifico Activado" };
-
-    // Cargar la configuración desde el JSON
-    fetch('diapositivas.json')
+    // Cargar la configuración desde el JSON de la base de datos
+    fetch('diapositivas.json?t=' + Date.now())
         .then(response => response.json())
         .then(data => {
             // Suponemos que la primera diapositiva (index 0) es la que estamos detectando
             const diapo = data.diapositivas[0];
-            configActual.duracion = diapo.duracion_animacion_segundos * 1000;
-            configActual.mensaje = diapo.mensaje_ar;
             
-            // Actualizar el texto en el modelo 3D
-            if (arText) {
-                arText.setAttribute('value', configActual.mensaje);
+            // Inyectamos todo el código 3D guardado en el CMS directamente a la cámara
+            if (arContent && diapo.codigoAnimacion) {
+                arContent.innerHTML = diapo.codigoAnimacion;
             }
-            console.log("Configuración JSON cargada:", diapo);
+            
+            console.log("Animación 3D cargada desde la base de datos");
         })
         .catch(err => console.error("Error cargando JSON:", err));
 

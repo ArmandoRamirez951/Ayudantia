@@ -53,22 +53,7 @@
 
         <!-- Contenedor que aparecerá SOBRE la imagen cuando sea detectada -->
         <a-entity mindar-image-target="targetIndex: 0" id="ar-content">
-
-            <!-- Texto flotante -->
-            <a-text value="¡Bienvenidos!" color="#000000" align="center" position="0 0.8 0" scale="1.5 1.5 1.5"
-                geometry="primitive: plane; width: 1.5; height: 0.5" material="color: #ffffff; opacity: 0.9"
-                animation="property: position; to: 0 0.85 0; dir: alternate; dur: 1000; loop: true">
-            </a-text>
-
-            <!-- 
-                AQUÍ IMPLEMENTAMOS EL MODELO PROFESIONAL 
-                - gltf-model="#modeloProfesional": Llama al archivo .glb
-                - animation-mixer="clip: *": Le dice que reproduzca automáticamente la animación que el diseñador le grabó al modelo (ej. caminar o correr)
-            -->
-            <a-entity gltf-model="#modeloProfesional" position="0 -0.2 0" scale="0.01 0.01 0.01" rotation="0 0 0"
-                animation-mixer="clip: *">
-            </a-entity>
-
+            <!-- El código de la animación se inyectará aquí automáticamente desde app.js -->
         </a-entity>
     </a-scene>
 
