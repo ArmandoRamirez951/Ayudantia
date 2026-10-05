@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const sceneEl = document.querySelector('a-scene');
     const uiContainer = document.getElementById('ui-container');
+    const scannerText = document.querySelector('.scanner-text');
     const arContent = document.getElementById('ar-content');
     const finishedMsg = document.getElementById('finished-msg');
     
@@ -24,7 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cuando la imagen es detectada por la cámara
     sceneEl.addEventListener("targetFound", event => {
         console.log("¡Diapositiva detectada!");
-        uiContainer.classList.add('hidden'); // Ocultar mensaje de "apunta"
+        // Ocultamos solo el texto de instrucciones, pero dejamos el cuadro enfocador (scanner-frame)
+        scannerText.style.display = 'none'; 
         arContent.setAttribute('visible', 'true'); // Mostrar animación
         finishedMsg.style.display = 'none';
         
@@ -35,7 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cuando la imagen se pierde de vista
     sceneEl.addEventListener("targetLost", event => {
         console.log("Se perdió la diapositiva de vista.");
-        uiContainer.classList.remove('hidden'); // Volver a pedir que apunte
+        // Volvemos a mostrar el texto si se pierde la imagen
+        scannerText.style.display = 'block'; 
         finishedMsg.style.display = 'none';
     });
 });
