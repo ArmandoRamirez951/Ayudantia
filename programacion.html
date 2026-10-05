@@ -656,8 +656,13 @@
             const mindFile = document.getElementById('input-mind').files[0];
             const codigo = document.getElementById('input-codigo').value;
 
-            if(!nombrePres || !nombreDiap || !codigo || !foto || !mindFile) {
-                alert("Error: No puedes guardar ni actualizar si no tienes TODOS los elementos del formulario (textos, foto y archivo .mind).");
+            if(!nombrePres || !nombreDiap || !codigo) {
+                alert("Error: Todos los campos de texto son obligatorios.");
+                return;
+            }
+
+            if(!esEdicion && (!foto || !mindFile)) {
+                alert("Error: Para una NUEVA animación es obligatorio subir la foto y el archivo .mind.");
                 return;
             }
 
