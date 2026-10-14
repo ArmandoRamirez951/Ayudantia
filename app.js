@@ -22,6 +22,33 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(err => console.error("Error cargando JSON:", err));
 
+    // Motor de cambio de color dinámico para los textos 3D del Método Científico
+    let hueCromatico = 180;
+    function animarColoresTexto() {
+        hueCromatico = (hueCromatico + 1.2) % 360;
+        const colorFrontal = `hsl(${hueCromatico}, 100%, 78%)`;
+        const colorGlow = `hsl(${(hueCromatico + 50) % 360}, 100%, 60%)`;
+        const colorAcento = `hsl(${(hueCromatico + 120) % 360}, 100%, 70%)`;
+
+        const textosFrontales = document.querySelectorAll('.texto-color-cambiante');
+        for (let i = 0; i < textosFrontales.length; i++) {
+            textosFrontales[i].setAttribute('color', colorFrontal);
+        }
+
+        const textosGlow = document.querySelectorAll('.texto-glow-cambiante');
+        for (let i = 0; i < textosGlow.length; i++) {
+            textosGlow[i].setAttribute('color', colorGlow);
+        }
+
+        const textosAcento = document.querySelectorAll('.texto-acento-cambiante');
+        for (let i = 0; i < textosAcento.length; i++) {
+            textosAcento[i].setAttribute('color', colorAcento);
+        }
+
+        requestAnimationFrame(animarColoresTexto);
+    }
+    requestAnimationFrame(animarColoresTexto);
+
     // Cuando la imagen es detectada por la cámara
     sceneEl.addEventListener("targetFound", event => {
         console.log("¡Diapositiva detectada!");
