@@ -1,0 +1,27 @@
+# Promtp para el codigo de animacion
+Actúa como un Desarrollador Experto en Realidad Aumentada Web (WebAR) especializado en A-Frame y MindAR.
+
+Necesito que generes el código HTML 3D de una escena en Realidad Aumentada que se inyectará directamente dentro de una escena de MindAR en un navegador web móvil y de escritorio.
+
+Aquí están los datos de mi diapositiva:
+- TEMA DE LA DIAPOSITIVA: [Escribe aquí el tema, ej: Unidad II: Tipos de Investigación y Enfoques Cuantitativos]
+- TEXTO O TÍTULO PRINCIPAL: [Escribe aquí el texto que debe flotar, ej: Bienvenidos a la clase de Tipos de Investigación]
+- SUBTÍTULO O FASES: [Escribe subtítulos o puntos clave, ej: Exploratoria • Descriptiva • Correlacional • Explicativa]
+- ELEMENTOS U OBJETOS 3D DESEADOS: [Menciona qué figuras quieres, ej: Un profesor con bata saludando, gráficos de barras 3D flotando, una lupa, libros abiertos y una balanza de precisión]
+- COLORES / ESTILO DESEADO: [Menciona colores, ej: Neón cian (#00f0ff), oro brillante (#facc15), azul zafiro y blanco nítido]
+- ANIMACIONES DESEADAS: [Menciona qué debe moverse, ej: El brazo del profesor saludando, gráficos subiendo y bajando, objetos flotando en gravedad cero]
+
+REGLAS TÉCNICAS OBLIGATORIAS QUE DEBES CUMPLIR:
+1. LENGUAJE Y ETIQUETAS: Genera exclusivamente código A-Frame (HTML). Todo el contenido debe estar envuelto dentro de un solo contenedor raíz:
+   <a-entity id="escena_estudio" position="0 0 0" scale="0.12 0.12 0.12"> ... </a-entity>
+2. ESCALA Y ENFOQUE: La escala raíz DEBE ser scale="0.12 0.12 0.12" para que encaje perfectamente dentro del cuadro de enfoque de la cámara móvil sin desbordarse.
+3. CONSTRUCCIÓN CON PRIMITIVAS 3D: Modela los objetos combinando primitivas nativas de A-Frame (<a-box>, <a-sphere>, <a-cylinder>, <a-cone>, <a-torus>, <a-ring>, <a-plane>, <a-octahedron>) usando materiales con brillo y reflejo (roughness, metalness, emissive, emissiveIntensity). No uses enlaces a texturas externas que puedan fallar por CORS.
+4. ANIMACIONES NATIVAS: Todas las animaciones deben usar el componente nativo de A-Frame:
+   animation="property: position / rotation / scale; to: ...; dur: ...; loop: true; dir: alternate; easing: easeInOutSine"
+5. REGLA CRÍTICA PARA EL TEXTO (EVITAR QUE DESAPAREZCA):
+   - El bloque de texto debe estar adelantado en el eje Z (z="0.9") para estar al frente de todos los objetos y nunca ser tapado.
+   - Debe incluir un plano de fondo protector oscuro semi-transparente (<a-plane material="color: #030712; opacity: 0.85; transparent: true">) para garantizar lectura 100% nítida.
+   - Agrega las clases class="texto-color-cambiante" y class="texto-glow-cambiante" en los <a-text> para compatibilidad con el motor cromático.
+   - NUNCA uses cilindros gigantes ni mallas que encierren toda la escena con opacidad sin depthWrite: false, ya que ocultan el texto en WebGL.
+6. ILUMINACIÓN: Incluye iluminación ambiental (<a-light type="ambient">) y luces puntuales de color (<a-light type="point">) para dar volumen y sombras realistas a los modelos.
+7. FORMATO DE ENTREGA: Entrégame únicamente el bloque de código HTML listo para copiar y pegar, comentado por secciones numeradas.
