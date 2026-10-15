@@ -26,4 +26,26 @@ flowchart TD
         E3["🏢 Aprueba Corporativos<br/><small>(🔒 Sin Cobertura Corp)</small>"]:::corp
         F["📄 5. Orden Oficial<br/><small>Inicia reparación</small>"]:::taller
 
-        D -- "≤ $10,000" --> E1 -->
+        D -- "≤ $10,000" --> E1 --> F
+        D -- "> $10,000" --> E2 --> E3 --> F
+    end
+
+    %% FASE 3: REPARACIÓN Y ENTREGA SEGURA (Izquierda a Derecha)
+    subgraph F3 ["3️⃣ FASE 3: REPARACIÓN Y ENTREGA CON PIN"]
+        direction LR
+        G["🔔 6. Taller: Unidad Lista<br/><small>Envía PIN 8 dígitos al Chofer</small>"]:::taller --> H(["🔐 7. Validación PIN<br/><small>Chofer dicta PIN en taller</small>"]):::chofer --> I["🚙 8. Unidad Entregada<br/><small>codigo_validado = true</small>"]:::exito
+    end
+
+    %% FASE 4: FACTURACIÓN Y CIERRE SAP (Izquierda a Derecha)
+    subgraph F4 ["4️⃣ FASE 4: FACTURACIÓN PDF Y CIERRE CONTABLE SAP"]
+        direction LR
+        J["📑 9. Taller: Sube PDF<br/><small>Carga Factura Fiscal</small>"]:::taller --> K["🔎 10. Sup: Valida PDF<br/><small>Revisión documental</small>"]:::supervisor --> L["🔓 11. Admin: Libera<br/><small>doc50_liberado = true</small>"]:::admin --> M["💼 12. Captura Doc 50<br/><small>Póliza contable SAP</small>"]:::supervisor --> N(["🗄️ 13. Archivo Histórico<br/><small>tickets_archivados.json</small>"]):::cierre
+    end
+
+    %% Conexiones entre las 4 fases (De arriba hacia abajo, pero compactas)
+    C --> D
+    F --> G
+    I --> J
+
+    class F1,F2,F3,F4 caja;
+```
