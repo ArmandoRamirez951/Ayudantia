@@ -1,5 +1,5 @@
 ```mermaid
-flowchart TD
+flowchart LR
     %% Definición de Estilos por Rol / Fase
     classDef chofer fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#ffffff,font-weight:bold;
     classDef supervisor fill:#0d9488,stroke:#0f766e,stroke-width:2px,color:#ffffff,font-weight:bold;
@@ -9,43 +9,29 @@ flowchart TD
     classDef condicion fill:#1e293b,stroke:#475569,stroke-width:2px,color:#f8fafc,font-weight:bold;
     classDef exito fill:#16a34a,stroke:#15803d,stroke-width:2px,color:#ffffff,font-weight:bold;
     classDef cierre fill:#0f172a,stroke:#334155,stroke-width:3px,color:#38bdf8,font-weight:bold;
-    classDef caja fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#1e293b,font-weight:bold;
+    classDef carril fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a,font-weight:bold;
 
-    %% FASE 1: INICIO Y COTIZACIÓN (Izquierda a Derecha)
-    subgraph F1 ["1️⃣ FASE 1: INGRESO Y DIAGNÓSTICO"]
+    %% CARRIL SUPERIOR: INGRESO, PRESUPUESTO Y REPARACIÓN
+    subgraph C1 ["➡️ PARTE 1: INGRESO, AUTORIZACIÓN Y TALLER (Izquierda a Derecha)"]
         direction LR
-        A(["🚗 1. Chofer: Reporte<br/><small>Correo, firma y COPE</small>"]):::chofer --> B["📋 2. Supervisor: Asigna<br/><small>Notifica al Taller</small>"]:::supervisor --> C["🔧 3. Taller: Cotiza<br/><small>Refacciones y fotos</small>"]:::taller
+        A(["🚗 1. Chofer<br/>Reporte Inicio"]):::chofer --> B["📋 2. Supervisor<br/>Asigna Taller"]:::supervisor --> C["🔧 3. Taller<br/>Cotización y Fotos"]:::taller --> D{"💰 4. Filtro<br/>$10,000"}:::condicion
+        
+        D -- "≤ $10k" --> E1["✅ Aprueba Sup.<br/>(Ordinario)"]:::supervisor
+        D -- "> $10k" --> E2["🛡️ VoBo Admin<br/>(+10k)"]:::admin --> E3["🏢 Aprueba Corp<br/>(🔒 Sin Suplencia)"]:::corp
+        
+        E1 --> F["📄 5. Orden Oficial<br/>Reparación Física"]:::taller
+        E3 --> F
+        F --> G["🔔 6. Taller: Lista<br/>Envía PIN a Chofer"]:::taller
     end
 
-    %% FASE 2: AUTORIZACIÓN PRESUPUESTAL (Izquierda a Derecha)
-    subgraph F2 ["2️⃣ FASE 2: FILTRO Y AUTORIZACIÓN PRESUPUESTAL"]
+    %% CARRIL INFERIOR: ENTREGA SEGURA, FACTURACIÓN PDF Y SAP
+    subgraph C2 ["➡️ PARTE 2: ENTREGA CON PIN, FACTURA PDF Y CIERRE SAP (Izquierda a Derecha)"]
         direction LR
-        D{"💰 4. Filtro<br/>Presupuestal"}:::condicion
-        E1["✅ Aprueba Supervisor<br/><small>(Ruta Ordinaria)</small>"]:::supervisor
-        E2["🛡️ Visto Bueno Admin<br/><small>(Revisión +$10k)</small>"]:::admin
-        E3["🏢 Aprueba Corporativos<br/><small>(🔒 Sin Cobertura Corp)</small>"]:::corp
-        F["📄 5. Orden Oficial<br/><small>Inicia reparación</small>"]:::taller
-
-        D -- "≤ $10,000" --> E1 --> F
-        D -- "> $10,000" --> E2 --> E3 --> F
+        H(["🔐 7. Chofer en Taller<br/>Dicta PIN 8 dígitos"]):::chofer --> I["🚙 8. Entregada<br/>codigo_validado"]:::exito --> J["📑 9. Taller<br/>Sube Factura PDF"]:::taller --> K["🔎 10. Supervisor<br/>Valida Factura PDF"]:::supervisor --> L["🔓 11. Admin<br/>Libera Ticket"]:::admin --> M["💼 12. Jefatura/Sup<br/>Captura Doc 50 SAP"]:::supervisor --> N(["🗄️ 13. Archivo<br/>Histórico JSON"]):::cierre
     end
 
-    %% FASE 3: REPARACIÓN Y ENTREGA SEGURA (Izquierda a Derecha)
-    subgraph F3 ["3️⃣ FASE 3: REPARACIÓN Y ENTREGA CON PIN"]
-        direction LR
-        G["🔔 6. Taller: Unidad Lista<br/><small>Envía PIN 8 dígitos al Chofer</small>"]:::taller --> H(["🔐 7. Validación PIN<br/><small>Chofer dicta PIN en taller</small>"]):::chofer --> I["🚙 8. Unidad Entregada<br/><small>codigo_validado = true</small>"]:::exito
-    end
+    %% Conexión entre Parte 1 y Parte 2
+    G --> H
 
-    %% FASE 4: FACTURACIÓN Y CIERRE SAP (Izquierda a Derecha)
-    subgraph F4 ["4️⃣ FASE 4: FACTURACIÓN PDF Y CIERRE CONTABLE SAP"]
-        direction LR
-        J["📑 9. Taller: Sube PDF<br/><small>Carga Factura Fiscal</small>"]:::taller --> K["🔎 10. Sup: Valida PDF<br/><small>Revisión documental</small>"]:::supervisor --> L["🔓 11. Admin: Libera<br/><small>doc50_liberado = true</small>"]:::admin --> M["💼 12. Captura Doc 50<br/><small>Póliza contable SAP</small>"]:::supervisor --> N(["🗄️ 13. Archivo Histórico<br/><small>tickets_archivados.json</small>"]):::cierre
-    end
-
-    %% Conexiones entre las 4 fases (De arriba hacia abajo, pero compactas)
-    C --> D
-    F --> G
-    I --> J
-
-    class F1,F2,F3,F4 caja;
+    class C1,C2 carril;
 ```
