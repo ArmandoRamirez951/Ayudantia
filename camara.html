@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Visor AR • Sistema de Ayudantía 2026</title>
+    <title>AR - Sistema de Realidad Virtual</title>
 
     <!-- Incluimos los estilos CSS -->
     <link rel="stylesheet" href="style.css">
@@ -22,23 +22,7 @@
 
 <body>
 
-    <!-- Barra Superior HUD Administrativo UABC FCA -->
-    <header class="ar-hud-topbar">
-        <div class="ar-hud-left">
-            <a href="index.html" class="ar-back-btn">← Portal</a>
-            <img src="interfaz/uabc_fca.jpg" alt="UABC FCA" style="height: 36px; width: auto; border-radius: 4px;">
-            <div class="ar-brand-meta">
-                <span class="ar-brand-title">Visor Óptico de Realidad Aumentada</span>
-                <span class="ar-brand-sub">FCA UABC • Escáner Científico MindAR</span>
-            </div>
-        </div>
-        <div class="ar-hud-status" id="ar-status-pill">
-            <span class="ar-status-dot"></span>
-            <span id="ar-status-label">BUSCANDO DIAPOSITIVA</span>
-        </div>
-    </header>
-
-    <!-- Interfaz de usuario (overlay) - Estructura intacta para app.js -->
+    <!-- Interfaz de usuario (overlay) -->
     <div id="ui-container">
         <div class="scanner-text">
             <h2>📷 Escanea la Diapositiva</h2>
@@ -54,16 +38,7 @@
 
     <div id="finished-msg">Animación finalizada</div>
 
-    <!-- Barra Inferior de Telemetría HUD -->
-    <div class="ar-hud-bottom">
-        <span>ÓPTICA: ACTIVA</span>
-        <span>•</span>
-        <span>RENDER: A-FRAME 3D</span>
-        <span>•</span>
-        <span id="ar-target-telemetry">TARGET: #00 (EN ESPERA)</span>
-    </div>
-
-    <!-- Escena de A-Frame configurada con MindAR (100% Intacta) -->
+    <!-- Escena de A-Frame configurada con MindAR -->
     <a-scene mindar-image="imageTargetSrc: ./Modelos_AR/diapositiva1.mind; autoStart: true; uiScanning: no; uiLoading: no;"
         color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false">
@@ -82,29 +57,6 @@
         </a-entity>
     </a-scene>
 
-    <!-- Script de telemetría visual del HUD (No modifica ni interfiere con app.js) -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const scene = document.querySelector('a-scene');
-            const statusPill = document.getElementById('ar-status-pill');
-            const statusLabel = document.getElementById('ar-status-label');
-            const telemetry = document.getElementById('ar-target-telemetry');
-
-            if (scene) {
-                scene.addEventListener("targetFound", () => {
-                    if (statusPill) statusPill.classList.add('detected');
-                    if (statusLabel) statusLabel.textContent = "DIAPOSITIVA DETECTADA • 3D ACTIVO";
-                    if (telemetry) telemetry.textContent = "TARGET: #00 (SINCRONIZADO)";
-                });
-
-                scene.addEventListener("targetLost", () => {
-                    if (statusPill) statusPill.classList.remove('detected');
-                    if (statusLabel) statusLabel.textContent = "BUSCANDO DIAPOSITIVA";
-                    if (telemetry) telemetry.textContent = "TARGET: #00 (EN ESPERA)";
-                });
-            }
-        });
-    </script>
 </body>
 
 </html>
