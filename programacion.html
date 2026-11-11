@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sección de Animaciones</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sistema de Realidad Virtual • Panel de Administración</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --uabc-blue: #092468;
+            --uabc-blue-mid: #0f368e;
+            --uabc-green: #00843d;
+            --uabc-green-hover: #006b31;
+            --uabc-gold: #f5b316;
+            --bg-color: #f1f5f9;
+            --bg-subtle: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.94);
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text-main: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 12px 28px -6px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -21,135 +37,422 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================================================
+           LAYOUT PRINCIPAL (BARRA LATERAL IZQUIERDA + ÁREA DE CONTENIDO CON FONDO UABC)
+           ========================================================================== */
+        .admin-dashboard-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .admin-dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+            .corp-sidebar {
+                height: auto;
+                position: relative;
+            }
+        }
+
+        /* Barra Lateral Izquierda: Foto -> Nombre -> Mis Animaciones -> Usuarios -> Instrucciones -> Salir */
+        .corp-sidebar {
+            background: linear-gradient(180deg, #092468 0%, #061847 100%);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 20px 24px 20px;
+            border-right: 4px solid var(--uabc-gold);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 150;
+        }
+
+        .sidebar-top {
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
         }
 
+        /* 1. Foto del Perfil arriba en el lado izquierdo */
+        .sidebar-profile-photo-wrapper {
+            position: relative;
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, var(--uabc-gold), var(--uabc-green));
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sidebar-profile-photo-wrapper:hover {
+            transform: scale(1.04);
+        }
+
+        .sidebar-profile-photo-wrapper img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ffffff;
+            display: block;
+        }
+
+        .photo-edit-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--uabc-green);
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 2. Nombre del usuario debajo de la foto */
+        .sidebar-user-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-align: center;
+            margin: 0 0 4px 0;
+            word-break: break-word;
+        }
+
+        .sidebar-user-role {
+            font-size: 0.76rem;
+            color: var(--uabc-gold);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            width: 100%;
+        }
+
+        /* 3. Botones del Menú Izquierdo: Mis Animaciones, Usuarios, Instrucciones */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            border-radius: 12px;
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 0.94rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            width: 100%;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            transform: translateX(3px);
+        }
+
+        .sidebar-link.active {
+            background: var(--uabc-green);
+            color: #ffffff;
+            border-color: var(--uabc-gold);
+            font-weight: 700;
+            box-shadow: 0 6px 16px rgba(0, 132, 61, 0.45);
+        }
+
+        /* 4. Hasta abajo: Botón Salir */
+        .sidebar-bottom {
+            width: 100%;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-salir-bottom {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            background: rgba(220, 38, 38, 0.2);
+            color: #fecaca;
+            font-size: 0.94rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-salir-bottom:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
+        }
+
+        /* ==========================================================================
+           ÁREA DERECHA CON IMAGEN interfaz/estampado_uabc.png ABARCANDO TODO EL FONDO
+           ========================================================================== */
+        .workspace-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        /* Imagen estampado_uabc.png abarcando todo el fondo de pantalla de la interfaz */
+        .workspace-bg-stamp {
+            position: fixed;
+            top: 76px;
+            left: 270px;
+            right: 0;
+            bottom: 0;
+            background-image: url('interfaz/estampado_uabc.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 92% 92%;
+            opacity: 0.20;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @media (max-width: 900px) {
+            .workspace-bg-stamp {
+                left: 0;
+                background-size: cover;
+            }
+        }
+
+        /* Barra Superior con el Título Centrado */
         .navbar {
             width: 100%;
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
+            background-color: #ffffff;
+            border-bottom: 3px solid var(--uabc-green);
             display: flex;
             justify-content: center;
-            padding: 15px 0;
+            padding: 14px 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: var(--shadow-sm);
+            min-height: 76px;
         }
 
         .nav-content {
-            width: 90%;
-            max-width: 1200px;
+            width: 94%;
+            max-width: 1280px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
+            gap: 16px;
         }
 
         .nav-left, .nav-right {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
+            z-index: 2;
         }
 
-        .nav-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin: 0;
+        /* Ocultamos permanentemente #btn-inicio manteniendo el nodo en el DOM */
+        #btn-inicio {
+            display: none !important;
+        }
+
+        .top-mini-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Título de hasta arriba perfectamente centrado */
+        .nav-title-centered {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--uabc-blue);
+            text-align: center;
             white-space: nowrap;
+            pointer-events: none;
         }
 
         .btn {
-            background: transparent;
-            color: var(--text-main);
+            background: #ffffff;
+            color: var(--text-secondary);
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.9rem;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
             cursor: pointer;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-strong);
             transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
+            font-family: 'Inter', sans-serif;
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-subtle);
+            border-color: var(--uabc-blue);
+            color: var(--uabc-blue);
         }
 
         .btn-primary {
-            background-color: var(--primary);
+            background-color: var(--uabc-green);
             color: white;
-            border: none;
+            border: 1px solid var(--uabc-green);
         }
 
         .btn-primary:hover {
-            background-color: var(--primary-hover);
+            background-color: var(--uabc-green-hover);
+            border-color: var(--uabc-green-hover);
+            color: white;
         }
 
         .btn-danger {
-            background-color: #dc2626;
+            background-color: var(--danger);
             color: white;
-            border: none;
+            border: 1px solid var(--danger);
         }
 
         .btn-danger:hover {
-            background-color: #b91c1c;
+            background-color: var(--danger-hover);
+            color: white;
         }
 
         .main-container {
-            width: 90%;
-            max-width: 1200px;
-            padding: 40px 0;
+            position: relative;
+            z-index: 10;
+            width: 94%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 28px 0 60px 0;
         }
 
+        /* Barra de herramientas de Mis Animaciones (Con el botón + Agregar en la esquina) */
+        .catalog-toolbar {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-title {
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: var(--uabc-blue);
+        }
+
+        .search-input {
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: #ffffff;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            min-width: 250px;
+        }
+
+        /* Galería de tarjetas (#grid-view) */
         #grid-view {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 24px;
         }
 
         .anim-card {
             background: var(--card-bg);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow-sm);
         }
 
         .anim-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.5);
-            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            border-color: var(--uabc-green);
         }
 
         .card-img-container {
             width: 100%;
-            height: 160px;
-            background: #000;
+            height: 175px;
+            background: #0f172a;
             overflow: hidden;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 3px solid var(--uabc-gold);
         }
 
         .card-img-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.8;
-            transition: opacity 0.3s;
+            transition: transform 0.3s;
         }
 
         .anim-card:hover .card-img-container img {
-            opacity: 1;
+            transform: scale(1.04);
         }
 
         .card-body {
@@ -157,20 +460,25 @@
         }
 
         .card-subtitle {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--primary);
+            letter-spacing: 0.06em;
+            color: var(--uabc-green);
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0 0 10px 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--uabc-blue);
+            margin: 0;
         }
 
+        /* ==========================================================================
+           DETALLE DE DIAPOSITIVA (#detail-view): TODO VISIBLE SIN SCROLL NI CORTES
+           ========================================================================== */
         #detail-view {
             display: none;
             width: 100%;
@@ -178,11 +486,12 @@
 
         .repo-layout {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+            align-items: start;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 920px) {
             .repo-layout {
                 grid-template-columns: 1fr;
             }
@@ -190,231 +499,899 @@
 
         .panel {
             background: var(--card-bg);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            min-width: 0;
         }
 
         .panel-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-muted);
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--uabc-blue);
             margin-top: 0;
             margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
         }
 
         .slide-preview {
             width: 100%;
-            border-radius: 8px;
-            margin-bottom: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             border: 1px solid var(--border-color);
         }
 
         .file-badge {
             display: inline-flex;
             align-items: center;
-            background: rgba(16, 185, 129, 0.1);
-            color: #34d399;
-            border: 1px solid rgba(52, 211, 153, 0.3);
+            background: #ecfdf5;
+            color: var(--uabc-green);
+            border: 1px solid #a7f3d0;
             padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .code-box {
-            background: #020617;
-            padding: 20px;
             border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Consolas', monospace;
-            font-size: 0.85rem;
-            color: #a5b4fc;
-            border: 1px solid var(--border-color);
-            line-height: 1.5;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            word-break: break-all;
         }
 
-        /* --- NUEVO ESTILO CORPORATIVO --- */
+        .panel-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+        .panel-header-row .panel-title {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        /* Caja de código con tamaño fijo y barra para desplazarse de arriba hacia abajo */
+        .code-box {
+            background: #091936;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.8rem;
+            color: #e2e8f0;
+            border: 1px solid #1e3a8a;
+            line-height: 1.6;
+            width: 100%;
+            height: 430px;
+            max-height: 430px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .code-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+            font-family: inherit;
+        }
+
+        /* Interfaz mediana donde nada más sale la animación 3D (Ver Simulación) */
+        .simulacion-modal-box {
+            position: relative;
+            width: 90%;
+            max-width: 720px;
+            height: 470px;
+            background: #050d21;
+            border-radius: 18px;
+            border: 3px solid var(--uabc-gold);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        .simulacion-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #050d21;
+        }
+
+        .btn-close-simulacion {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 20;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+        }
+
+        .btn-close-simulacion:hover {
+            background: var(--danger-hover);
+            transform: scale(1.08);
+        }
+
         .repo-header-panel {
             background: var(--card-bg);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-            border-left: 4px solid var(--primary);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            border-left: 6px solid var(--uabc-green);
         }
 
         .repo-meta-row {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 40px;
+            width: 100%;
+        }
+
+        .repo-row-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .meta-item {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
         }
 
         .meta-label {
-            font-size: 0.8rem;
+            font-size: 0.74rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
             color: var(--text-muted);
             font-weight: 700;
         }
 
         .meta-value {
-            font-size: 1.2rem;
-            color: var(--text-main);
-            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.15rem;
+            color: var(--uabc-blue);
+            font-weight: 700;
         }
 
         .file-info-group {
-            margin-bottom: 25px;
+            margin-bottom: 22px;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        #btn-regresar, #action-buttons {
+        #btn-regresar {
             display: none;
         }
 
+        #action-buttons {
+            display: none !important;
+        }
+
+        /* ==========================================================================
+           SECCIÓN USUARIOS Y SECCIÓN INSTRUCCIONES
+           ========================================================================== */
+        #roles-view,
+        #instrucciones-view {
+            display: none;
+            width: 100%;
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .roles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+        }
+
+        .users-table th {
+            text-align: left;
+            padding: 12px 14px;
+            background: var(--bg-subtle);
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .users-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .user-row-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--uabc-green);
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .badge-role-admin {
+            background: #eff6ff;
+            color: var(--uabc-blue);
+            border: 1px solid #bfdbfe;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-role-sub {
+            background: #f0fdf4;
+            color: var(--uabc-green);
+            border: 1px solid #bbf7d0;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .photo-upload-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            background: var(--bg-subtle);
+            border: 1px dashed var(--border-strong);
+            border-radius: 12px;
+        }
+
+        .photo-circle-preview {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2px solid var(--uabc-green);
+            object-fit: cover;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .instructions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--uabc-green);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--uabc-blue);
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .step-card h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.05rem;
+            color: var(--uabc-blue);
+            margin: 0 0 8px 0;
+        }
+
+        .step-card p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* ==========================================================================
+           VENTANAS MODALES + INTERFAZ DE PERFIL (VISTA DE DATOS + IMAGEN AMPLIADA)
+           ========================================================================== */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
+            background: rgba(9, 36, 104, 0.68);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
             justify-content: center;
             align-items: center;
         }
 
         .modal-content {
             position: relative;
-            background: var(--card-bg);
+            background: #ffffff;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
+            border-top: 5px solid var(--uabc-green);
+            border-radius: 18px;
+            width: 92%;
+            max-width: 560px;
             max-height: 90vh;
             overflow-y: auto;
             padding: 30px;
-            padding-top: 40px; /* Espacio para la X */
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            padding-top: 38px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         .modal-content h2 {
             margin: 0;
-            font-size: 1.5rem;
-            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--uabc-blue);
             text-align: center;
         }
 
         .btn-close-modal {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            font-weight: bold;
+            top: 16px;
+            right: 16px;
+            background: var(--bg-subtle);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.2s;
         }
 
         .btn-close-modal:hover {
-            background: rgba(220, 38, 38, 0.9);
+            background: var(--danger);
             color: white;
+        }
+
+        /* Vista de Datos del Perfil (Sin actualizar, con clic para agrandar foto) */
+        .profile-info-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0 4px 0;
+        }
+
+        .profile-modal-avatar-clickable {
+            position: relative;
+            width: 118px;
+            height: 118px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, var(--uabc-blue), var(--uabc-green), var(--uabc-gold));
+            cursor: zoom-in;
+            box-shadow: 0 10px 25px rgba(9, 36, 104, 0.22);
+            transition: transform 0.2s;
+        }
+
+        .profile-modal-avatar-clickable:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-modal-avatar-clickable img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ffffff;
+            display: block;
+        }
+
+        .zoom-hint-pill {
+            font-size: 0.72rem;
+            color: var(--uabc-green);
+            font-weight: 700;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .profile-readonly-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .profile-readonly-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            gap: 12px;
+        }
+
+        .profile-readonly-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .profile-readonly-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .profile-readonly-val {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-align: right;
+        }
+
+        /* Visor de Imagen en Grande con botón X para volver a la interfaz de los datos */
+        .photo-lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 18, 46, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 3500;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .photo-lightbox-box {
+            position: relative;
+            max-width: 520px;
+            width: 90%;
+            background: #ffffff;
+            padding: 18px;
+            border-radius: 20px;
+            border: 3px solid var(--uabc-gold);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .photo-lightbox-box img {
+            width: 100%;
+            max-height: 72vh;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .btn-close-lightbox {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: #ffffff;
+            border: 3px solid #ffffff;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+            transition: transform 0.2s;
+        }
+
+        .btn-close-lightbox:hover {
             transform: scale(1.1);
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .form-group label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-size: 0.84rem;
+            color: var(--text-secondary);
             font-weight: 600;
         }
 
-        .form-group input, .form-group textarea {
-            background: #0f172a;
-            border: 1px solid var(--border-color);
+        .form-group input, .form-group textarea, .form-group select {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-strong);
             color: var(--text-main);
-            padding: 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-family: 'Inter', sans-serif;
-            font-size: 1rem;
+            font-size: 0.92rem;
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
-            font-family: monospace;
-            font-size: 0.65rem; /* Letra aún más chica para el código */
-        }
-
-        .form-group input[type="file"] {
-            padding: 8px;
+            min-height: 110px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
         }
 
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 15px;
-            margin-top: 10px;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-color);
         }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <div class="nav-content">
-            <div class="nav-left">
-                <a href="index.html" class="btn" id="btn-inicio">⬅ Volver al Inicio</a>
-                <button class="btn" id="btn-regresar" onclick="cerrarDetalle()">⬅ Catálogo</button>
-            </div>
-            
-            <h1 class="nav-title">Sección de Programación</h1>
+    <!-- Verificación inmediata de seguridad: solo se puede entrar iniciando sesión desde index.html -->
+    <script>
+        (function verificarAccesoExclusivo() {
+            try {
+                const raw = sessionStorage.getItem('ayudantia_ar_session_2026');
+                if (!raw) {
+                    window.location.replace('index.html?login=1');
+                }
+            } catch (e) {
+                window.location.replace('index.html?login=1');
+            }
+        })();
+    </script>
 
-            <div class="nav-right" id="nav-actions">
-                <button class="btn btn-primary" onclick="abrirModal()">+ Agregar</button>
+    <!-- ======================================================================
+         ESTRUCTURA DEL PERFIL ADMINISTRATIVO
+         ====================================================================== -->
+    <div class="admin-dashboard-layout">
+        <!-- Lado Izquierdo: 1. Foto de Perfil -> 2. Nombre -> 3. Mis Animaciones -> 4. Usuarios -> 5. Instrucciones -> 6. Salir -->
+        <aside class="corp-sidebar">
+            <div class="sidebar-top">
+                <!-- 1. Foto del perfil (Clic para abrir la interfaz de datos del perfil) -->
+                <div class="sidebar-profile-photo-wrapper" onclick="abrirModalMiPerfil()" title="Ver datos de mi perfil">
+                    <img id="sidebar-user-img" src="usuarios/admin_default.svg" alt="Foto de Perfil">
+                    <span class="photo-edit-badge">👤</span>
+                </div>
+
+                <!-- 2. Nombre del usuario -->
+                <h2 class="sidebar-user-name" id="sidebar-user-name">Administrador</h2>
+                <div class="sidebar-user-role" id="sidebar-user-role">Administrador Principal</div>
+
+                <!-- 3. Botones de navegación -->
+                <nav class="sidebar-nav">
+                    <button type="button" class="sidebar-link active" id="nav-link-catalogo" onclick="cambiarVistaSeccion('catalogo')">
+                        <span>🎬</span> Mis Animaciones
+                    </button>
+                    <button type="button" class="sidebar-link" id="nav-link-roles" onclick="cambiarVistaSeccion('roles')">
+                        <span>👥</span> Usuarios
+                    </button>
+                    <button type="button" class="sidebar-link" id="nav-link-instrucciones" onclick="cambiarVistaSeccion('instrucciones')">
+                        <span>📋</span> Instrucciones
+                    </button>
+                </nav>
             </div>
 
-            <div class="nav-right" id="action-buttons">
-                <button class="btn" onclick="editarAnimacion()">Editar</button>
-                <button class="btn btn-danger" onclick="eliminarAnimacion()">Eliminar</button>
+            <!-- 4. Hasta abajo: Botón Salir (Pide confirmación) -->
+            <div class="sidebar-bottom">
+                <button type="button" class="btn-salir-bottom" onclick="cerrarSesionAdmin()">
+                    <span>🚪</span> Salir
+                </button>
+            </div>
+        </aside>
+
+        <!-- Área Principal con la imagen estampado_uabc.png abarcando todo el fondo -->
+        <div class="workspace-area">
+            <div class="workspace-bg-stamp"></div>
+
+            <!-- Barra Superior con Título Centrado -->
+            <div class="navbar">
+                <div class="nav-content">
+                    <div class="nav-left">
+                        <a href="index.html" class="btn" id="btn-inicio">⬅ Volver al Inicio</a>
+                        <button class="btn" id="btn-regresar" onclick="cerrarDetalle()">⬅ Mis Animaciones</button>
+                        <img src="interfaz/uabc_fca.jpg" alt="UABC FCA" class="top-mini-logo">
+                    </div>
+
+                    <!-- Título de hasta arriba centrado -->
+                    <h1 class="nav-title-centered" id="section-header-title">Mis Animaciones</h1>
+
+                    <!-- Botones de Editar y Eliminar cuando se abre una diapositiva -->
+                    <div class="nav-right" id="action-buttons">
+                        <button class="btn" onclick="editarAnimacion()">Editar</button>
+                        <button class="btn btn-danger" onclick="intentarEliminarAnimacion()">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-container">
+
+                <!-- SECCIÓN 1: MIS ANIMACIONES (Con el botón + Agregar en la esquina dentro de esta interfaz) -->
+                <div id="catalogo-section-wrapper">
+                    <div class="catalog-toolbar" id="catalog-toolbar-bar">
+                        <div class="toolbar-left">
+                            <div class="toolbar-title">📦 Catálogo de Diapositivas y Animaciones</div>
+                            <input type="search" class="search-input" placeholder="🔍 Buscar diapositiva o presentación..." oninput="filtrarTarjetasCatalogo(this.value)">
+                        </div>
+
+                        <!-- Botón + Agregar ubicado en la esquina dentro de la interfaz de Mis Animaciones -->
+                        <div id="nav-actions" style="display: flex;">
+                            <button class="btn btn-primary" onclick="abrirModal()">+ Agregar</button>
+                        </div>
+                    </div>
+
+                    <!-- VISTA DE GALERÍA GENERADA DINÁMICAMENTE -->
+                    <div id="grid-view"></div>
+                    <!-- VISTA DE DETALLE GENERADA DINÁMICAMENTE (Todo visible dentro de la interfaz) -->
+                    <div id="detail-view"></div>
+                </div>
+
+                <!-- SECCIÓN 2: USUARIOS -->
+                <div id="roles-view">
+                    <div class="roles-grid">
+                        <div class="panel">
+                            <h3 class="panel-title">Administradores y Subadministradores</h3>
+                            <div style="overflow-x: auto;">
+                                <table class="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Perfil / Usuario</th>
+                                            <th>Rol Asignado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel" id="create-user-panel">
+                            <h3 class="panel-title" id="user-form-title">Registrar Usuario con Foto</h3>
+                            <form id="form-nuevo-usuario" onsubmit="guardarNuevoUsuario(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                                <input type="hidden" id="edit-user-id" value="">
+
+                                <div class="form-group">
+                                    <label>Foto de Perfil (Carpeta <code>usuarios/</code>)</label>
+                                    <div class="photo-upload-preview-box">
+                                        <img id="new-user-photo-preview" src="usuarios/subadmin_default.svg" alt="Vista previa" class="photo-circle-preview">
+                                        <div style="flex: 1;">
+                                            <input type="file" id="new-user-foto" accept="image/png, image/jpeg, image/webp, image/svg+xml" onchange="previsualizarFotoFormulario(this, 'new-user-photo-preview')" style="width: 100%; font-size: 0.8rem;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Nombre Completo</label>
+                                    <input type="text" id="new-user-nombre" placeholder="Ej. Dra. Elena Ramírez" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Nombre de Usuario (Login)</label>
+                                    <input type="text" id="new-user-login" placeholder="Ej. eramirez" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Contraseña <span id="pass-hint-label" style="font-weight: 400; color: var(--text-muted);"></span></label>
+                                    <input type="password" id="new-user-pass" placeholder="Contraseña de acceso" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Rol en el Sistema</label>
+                                    <select id="new-user-rol">
+                                        <option value="Subadministrador">🔑 Subadministrador</option>
+                                        <option value="Administrador Principal">👑 Administrador Principal</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Cargo Académico / Administrativo</label>
+                                    <input type="text" id="new-user-cargo" placeholder="Ej. Coordinación de Metodología FCA">
+                                </div>
+
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" class="btn" id="btn-cancelar-edicion-usr" style="display: none;" onclick="limpiarFormularioUsuario()">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                                        💾 Guardar Usuario
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: INSTRUCCIONES -->
+                <div id="instrucciones-view">
+                    <div class="repo-header-panel">
+                        <div class="repo-meta-row">
+                            <div class="meta-item">
+                                <span class="meta-label">Guía Operativa del Sistema</span>
+                                <span class="meta-value">Instrucciones para Administrar Presentaciones y Modelos en Realidad Virtual</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="instructions-grid">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <h4>Captura de la Diapositiva</h4>
+                            <p>Exporta la diapositiva de tu presentación en formato de imagen (<strong>.PNG</strong> o <strong>.JPG</strong>) con buena iluminación y contraste para que la cámara pueda detectarla con precisión.</p>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <h4>Archivo de Reconocimiento (.MIND)</h4>
+                            <p>Compila la imagen de tu diapositiva en un archivo patrón <strong>.mind</strong> (MindAR Image Target). Este archivo permite que el visor reconozca la diapositiva en tiempo real.</p>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <h4>Registro en "Mis Animaciones"</h4>
+                            <p>Dirígete a la pestaña <strong>Mis Animaciones</strong> y presiona el botón <strong>+ Agregar</strong> ubicado en la esquina. Ingresa los datos, sube la foto, el archivo <code>.mind</code> y pega el código 3D de <strong>A-Frame</strong>.</p>
+                        </div>
+
+                        <div class="step-card">
+                            <div class="step-number">4</div>
+                            <h4>Gestión de Usuarios y Fotos</h4>
+                            <p>Desde la pestaña <strong>Usuarios</strong> puedes dar de alta Subadministradores con su foto de perfil, o hacer clic sobre tu foto a la izquierda para consultar tus datos, ver tu foto en grande o editar tu perfil.</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <div class="main-container">
-        <!-- VISTA DE GALERÍA GENERADA DINÁMICAMENTE -->
-        <div id="grid-view"></div>
-        <!-- VISTA DE DETALLE GENERADA DINÁMICAMENTE -->
-        <div id="detail-view"></div>
+    <!-- ======================================================================
+         MODAL 1: INTERFAZ DE DATOS DEL PERFIL (Al hacer clic en la foto)
+         - Muestra primero los datos sin actualizar + botones "Editar" y "Salir" abajo
+         - Si se presiona la imagen se hace grande con una X para volver a esta interfaz
+         ====================================================================== -->
+    <div class="modal-overlay" id="modal-mi-perfil">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="btn-close-modal" onclick="cerrarModalMiPerfil()" title="Cerrar">X</button>
+            <h2 id="perfil-modal-titulo">Datos del Perfil</h2>
+
+            <!-- VISTA 1: DATOS DEL PERFIL (SOLO LECTURA) -->
+            <div id="perfil-vista-datos">
+                <div class="profile-info-card">
+                    <div class="profile-modal-avatar-clickable" onclick="abrirFotoEnGrande()" title="Haz clic para ver la imagen en grande">
+                        <img id="vista-perfil-img" src="usuarios/admin_default.svg" alt="Foto de Perfil">
+                    </div>
+                    <span class="zoom-hint-pill">🔍 Haz clic en la imagen para verla en grande</span>
+
+                    <div class="profile-readonly-list">
+                        <div class="profile-readonly-item">
+                            <span class="profile-readonly-label">Nombre</span>
+                            <span class="profile-readonly-val" id="vista-perfil-nombre">-</span>
+                        </div>
+                        <div class="profile-readonly-item">
+                            <span class="profile-readonly-label">Usuario</span>
+                            <span class="profile-readonly-val" id="vista-perfil-usuario">-</span>
+                        </div>
+                        <div class="profile-readonly-item">
+                            <span class="profile-readonly-label">Rol</span>
+                            <span class="profile-readonly-val" id="vista-perfil-rol">-</span>
+                        </div>
+                        <div class="profile-readonly-item">
+                            <span class="profile-readonly-label">Cargo</span>
+                            <span class="profile-readonly-val" id="vista-perfil-cargo">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones hasta abajo: Editar y Salir -->
+                <div class="modal-buttons" style="justify-content: space-between; margin-top: 18px;">
+                    <button type="button" class="btn" onclick="cerrarModalMiPerfil()">Salir</button>
+                    <button type="button" class="btn btn-primary" onclick="activarModoEdicionPerfil()">✏️ Editar</button>
+                </div>
+            </div>
+
+            <!-- VISTA 2: FORMULARIO PARA EDITAR PERFIL (Solo aparece al presionar el botón Editar) -->
+            <form id="form-mi-perfil" onsubmit="guardarMiPerfilPropio(event)" style="display: none; flex-direction: column; gap: 14px;">
+                <div class="form-group">
+                    <label>Fotografía de Perfil (Carpeta <code>usuarios/</code>)</label>
+                    <div class="photo-upload-preview-box">
+                        <img id="mi-perfil-preview" src="usuarios/admin_default.svg" alt="Mi Foto" class="photo-circle-preview" style="width: 68px; height: 68px; cursor: zoom-in;" onclick="abrirFotoEnGrande()">
+                        <div style="flex: 1;">
+                            <input type="file" id="mi-perfil-foto" accept="image/png, image/jpeg, image/webp, image/svg+xml" onchange="previsualizarFotoFormulario(this, 'mi-perfil-preview')" style="width: 100%; font-size: 0.8rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="mi-perfil-nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Cargo / Departamento</label>
+                    <input type="text" id="mi-perfil-cargo">
+                </div>
+
+                <div class="form-group">
+                    <label>Nueva Contraseña (Opcional)</label>
+                    <input type="password" id="mi-perfil-pass" placeholder="Dejar en blanco para mantener la actual">
+                </div>
+
+                <div class="modal-buttons" style="justify-content: space-between;">
+                    <button type="button" class="btn" onclick="mostrarVistaDatosPerfil()">← Volver a Datos</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- VENTANA MODAL (FORMULARIO CREAR/EDITAR) -->
+    <!-- VISOR DE IMAGEN EN GRANDE CON UNA "X" PARA VOLVER A LA INTERFAZ DE LOS DATOS -->
+    <div class="photo-lightbox-overlay" id="photo-lightbox">
+        <div class="photo-lightbox-box">
+            <button type="button" class="btn-close-lightbox" onclick="cerrarFotoEnGrande()" title="Cerrar y volver a los datos">X</button>
+            <img id="photo-lightbox-img" src="usuarios/admin_default.svg" alt="Foto de Perfil Ampliada">
+        </div>
+    </div>
+
+    <!-- INTERFAZ MEDIANA DONDE NADA MÁS SALE LA ANIMACIÓN 3D (VER SIMULACIÓN) -->
+    <div class="modal-overlay" id="modal-simulacion-3d" onclick="if(event.target.id==='modal-simulacion-3d') cerrarSimulacion3D()">
+        <div class="simulacion-modal-box">
+            <button type="button" class="btn-close-simulacion" onclick="cerrarSimulacion3D()" title="Cerrar Simulación">X</button>
+            <iframe id="simulacion-iframe-view" class="simulacion-iframe" title="Simulación 3D"></iframe>
+        </div>
+    </div>
+
+    <!-- MODAL 2: FORMULARIO CREAR/EDITAR ANIMACIÓN (IDs y estructura original 100% intactos) -->
     <div class="modal-overlay" id="modal-agregar">
         <div class="modal-content">
             <button class="btn-close-modal" onclick="cerrarModal()" title="Cerrar">X</button>
@@ -462,7 +1439,451 @@
         </div>
     </div>
 
-    <!-- SCRIPT CMS DINÁMICO -->
+    <!-- ======================================================================
+         CAPA DE SESIÓN, CONFIRMACIÓN DE SALIDA (NAVIGATION GUARD) Y PERFIL
+         ====================================================================== -->
+    <script>
+        const AUTH_SESSION_KEY = 'ayudantia_ar_session_2026';
+        let cachedUsersList = [];
+        let salidaAutorizada = false;
+
+        // Guardia de Navegación (Navigation Guard): intercepta el botón "Regresar página" (Atrás) del navegador
+        function inicializarGuardiaDeNavegacion() {
+            history.pushState({ moduloAdmin: true }, "", window.location.href);
+
+            window.addEventListener('popstate', function () {
+                if (salidaAutorizada) return;
+                const deseaSalir = confirm("⚠️ ¿Deseas salir de la página y cerrar tu sesión de administración?");
+                if (deseaSalir) {
+                    salidaAutorizada = true;
+                    sessionStorage.removeItem(AUTH_SESSION_KEY);
+                    window.location.replace('index.html');
+                } else {
+                    // Mantener al usuario en la página actual si cancela
+                    history.pushState({ moduloAdmin: true }, "", window.location.href);
+                }
+            });
+        }
+
+        function obtenerSesionActual() {
+            try {
+                const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Botón Salir con confirmación
+        function cerrarSesionAdmin() {
+            if (!confirm("⚠️ ¿Estás seguro de que deseas cerrar sesión y salir del perfil?")) {
+                return;
+            }
+            salidaAutorizada = true;
+            sessionStorage.removeItem(AUTH_SESSION_KEY);
+            window.location.href = 'index.html';
+        }
+
+        function aplicarEstadoSesionUI() {
+            const sesion = obtenerSesionActual();
+            if (!sesion) {
+                salidaAutorizada = true;
+                window.location.replace('index.html?login=1');
+                return;
+            }
+
+            const esAdminPrincipal = sesion.rol === 'Administrador Principal';
+            const avatarUrl = sesion.fotoPerfil || (esAdminPrincipal ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg');
+
+            const sideImg = document.getElementById('sidebar-user-img');
+            if (sideImg) sideImg.src = avatarUrl + '?t=' + Date.now();
+
+            document.getElementById('sidebar-user-name').textContent = sesion.nombre || sesion.usuario;
+            document.getElementById('sidebar-user-role').textContent = sesion.rol;
+
+            cargarTablaUsuarios();
+        }
+
+        function previsualizarFotoFormulario(inputEl, previewId) {
+            const img = document.getElementById(previewId);
+            if (inputEl.files && inputEl.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(inputEl.files[0]);
+            }
+        }
+
+        // Abrir modal de perfil en Modo Vista (Datos sin actualizar + botones Editar y Salir)
+        function abrirModalMiPerfil() {
+            const sesion = obtenerSesionActual();
+            if (!sesion) return;
+
+            const fotoActual = (sesion.fotoPerfil || 'usuarios/admin_default.svg') + '?t=' + Date.now();
+            document.getElementById('vista-perfil-img').src = fotoActual;
+            document.getElementById('vista-perfil-nombre').textContent = sesion.nombre || '-';
+            document.getElementById('vista-perfil-usuario').textContent = '@' + (sesion.usuario || '');
+            document.getElementById('vista-perfil-rol').textContent = sesion.rol || '-';
+            document.getElementById('vista-perfil-cargo').textContent = sesion.cargo || 'Facultad de Contaduría y Administración';
+
+            // Preparar también los campos del modo edición por si presiona "Editar"
+            document.getElementById('mi-perfil-nombre').value = sesion.nombre || '';
+            document.getElementById('mi-perfil-cargo').value = sesion.cargo || '';
+            document.getElementById('mi-perfil-pass').value = '';
+            document.getElementById('mi-perfil-foto').value = '';
+            document.getElementById('mi-perfil-preview').src = fotoActual;
+
+            mostrarVistaDatosPerfil();
+            document.getElementById('modal-mi-perfil').style.display = 'flex';
+        }
+
+        function mostrarVistaDatosPerfil() {
+            document.getElementById('perfil-modal-titulo').textContent = 'Datos del Perfil';
+            document.getElementById('perfil-vista-datos').style.display = 'block';
+            document.getElementById('form-mi-perfil').style.display = 'none';
+        }
+
+        function activarModoEdicionPerfil() {
+            document.getElementById('perfil-modal-titulo').textContent = 'Editar Datos del Perfil';
+            document.getElementById('perfil-vista-datos').style.display = 'none';
+            document.getElementById('form-mi-perfil').style.display = 'flex';
+        }
+
+        function cerrarModalMiPerfil() {
+            document.getElementById('modal-mi-perfil').style.display = 'none';
+        }
+
+        // Hacer grande la imagen al presionarla y mostrar una X para volver a la interfaz de los datos
+        function abrirFotoEnGrande() {
+            const srcActual = document.getElementById('vista-perfil-img').src;
+            document.getElementById('photo-lightbox-img').src = srcActual;
+            document.getElementById('photo-lightbox').style.display = 'flex';
+        }
+
+        function cerrarFotoEnGrande() {
+            document.getElementById('photo-lightbox').style.display = 'none';
+        }
+
+        async function guardarMiPerfilPropio(event) {
+            event.preventDefault();
+            const sesion = obtenerSesionActual();
+            if (!sesion) return;
+
+            const formData = new FormData();
+            formData.append('id', sesion.id);
+            formData.append('usuario', sesion.usuario);
+            formData.append('nombre', document.getElementById('mi-perfil-nombre').value.trim());
+            formData.append('cargo', document.getElementById('mi-perfil-cargo').value.trim());
+            const nuevaPass = document.getElementById('mi-perfil-pass').value.trim();
+            if (nuevaPass) formData.append('password', nuevaPass);
+
+            const archivoFoto = document.getElementById('mi-perfil-foto').files[0];
+            if (archivoFoto) {
+                formData.append('fotoPerfil', archivoFoto);
+            }
+
+            try {
+                const res = await fetch('/api/users/profile', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.ok && data.usuario) {
+                        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
+                        aplicarEstadoSesionUI();
+                        abrirModalMiPerfil();
+                        alert("¡Datos del perfil actualizados correctamente!");
+                        return;
+                    }
+                }
+                alert("Error al actualizar el perfil en el servidor.");
+            } catch (err) {
+                alert("Error de conexión con el servidor.");
+            }
+        }
+
+        function intentarEliminarAnimacion() {
+            const sesion = obtenerSesionActual();
+            if (!sesion) return;
+            if (sesion.rol !== 'Administrador Principal') {
+                alert("🔒 Permiso Restringido: Solo el 'Administrador Principal' puede eliminar animaciones del sistema.");
+                return;
+            }
+            eliminarAnimacion();
+        }
+
+        function cambiarVistaSeccion(seccion) {
+            const catalogoWrapper = document.getElementById('catalogo-section-wrapper');
+            const rolesView = document.getElementById('roles-view');
+            const instruccionesView = document.getElementById('instrucciones-view');
+
+            const linkCat = document.getElementById('nav-link-catalogo');
+            const linkRoles = document.getElementById('nav-link-roles');
+            const linkInst = document.getElementById('nav-link-instrucciones');
+
+            const actionButtons = document.getElementById('action-buttons');
+            const btnRegresar = document.getElementById('btn-regresar');
+            const headerTitle = document.getElementById('section-header-title');
+
+            linkCat.classList.remove('active');
+            linkRoles.classList.remove('active');
+            linkInst.classList.remove('active');
+
+            catalogoWrapper.style.display = 'none';
+            rolesView.style.display = 'none';
+            instruccionesView.style.display = 'none';
+
+            if (seccion === 'roles') {
+                rolesView.style.display = 'block';
+                linkRoles.classList.add('active');
+                headerTitle.textContent = 'Usuarios';
+                actionButtons.style.display = 'none';
+                btnRegresar.style.display = 'none';
+                cargarTablaUsuarios();
+            } else if (seccion === 'instrucciones') {
+                instruccionesView.style.display = 'block';
+                linkInst.classList.add('active');
+                headerTitle.textContent = 'Instrucciones';
+                actionButtons.style.display = 'none';
+                btnRegresar.style.display = 'none';
+            } else {
+                catalogoWrapper.style.display = 'block';
+                linkCat.classList.add('active');
+                headerTitle.textContent = 'Mis Animaciones';
+                if (currentItem) {
+                    actionButtons.style.display = 'flex';
+                    btnRegresar.style.display = 'flex';
+                } else {
+                    actionButtons.style.display = 'none';
+                    btnRegresar.style.display = 'none';
+                }
+            }
+        }
+
+        async function cargarTablaUsuarios() {
+            const sesion = obtenerSesionActual();
+            const esAdminPrincipal = sesion && sesion.rol === 'Administrador Principal';
+
+            let lista = [];
+            try {
+                const res = await fetch('/api/users');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.usuarios) lista = data.usuarios;
+                }
+            } catch (e) {}
+
+            if (!lista.length) {
+                try {
+                    const r2 = await fetch('usuarios.json?t=' + Date.now());
+                    if (r2.ok) {
+                        const d2 = await r2.json();
+                        lista = d2.usuarios || [];
+                    }
+                } catch (e) {}
+            }
+
+            cachedUsersList = lista;
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            lista.forEach(u => {
+                const badgeClass = u.rol === 'Administrador Principal' ? 'badge-role-admin' : 'badge-role-sub';
+                const icon = u.rol === 'Administrador Principal' ? '👑' : '🔑';
+                const fotoSrc = (u.fotoPerfil || (u.rol === 'Administrador Principal' ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
+
+                let accionesHtml = `<span style="font-size: 0.75rem; color: var(--text-muted);">Solo lectura</span>`;
+                if (esAdminPrincipal) {
+                    const btnBorrar = u.usuario !== 'admin'
+                        ? `<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.74rem;" onclick="eliminarCuentaUsuario('${u.id}')">Eliminar</button>`
+                        : '';
+                    accionesHtml = `
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn" style="padding: 5px 10px; font-size: 0.74rem;" onclick="cargarUsuarioParaEditar('${u.id}')">✏️ Editar / Foto</button>
+                            ${btnBorrar}
+                        </div>
+                    `;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div class="user-row-cell">
+                                <img src="${fotoSrc}" alt="${u.nombre}" class="table-avatar">
+                                <div>
+                                    <strong>${u.nombre}</strong><br>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">@${u.usuario}</span>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">${u.cargo || ''}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="${badgeClass}">${icon} ${u.rol}</span></td>
+                        <td>${accionesHtml}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function cargarUsuarioParaEditar(id) {
+            const u = cachedUsersList.find(item => item.id === id);
+            if (!u) return;
+
+            document.getElementById('user-form-title').textContent = "Editar Usuario y Foto";
+            document.getElementById('edit-user-id').value = u.id;
+            document.getElementById('new-user-nombre').value = u.nombre || '';
+            document.getElementById('new-user-login').value = u.usuario || '';
+            document.getElementById('new-user-pass').value = '';
+            document.getElementById('new-user-pass').required = false;
+            document.getElementById('pass-hint-label').textContent = "(Opcional al editar)";
+            document.getElementById('new-user-rol').value = u.rol || 'Subadministrador';
+            document.getElementById('new-user-cargo').value = u.cargo || '';
+            document.getElementById('new-user-photo-preview').src = (u.fotoPerfil || 'usuarios/subadmin_default.svg') + '?t=' + Date.now();
+            document.getElementById('btn-cancelar-edicion-usr').style.display = 'inline-flex';
+        }
+
+        function limpiarFormularioUsuario() {
+            document.getElementById('form-nuevo-usuario').reset();
+            document.getElementById('user-form-title').textContent = "Registrar Usuario con Foto";
+            document.getElementById('edit-user-id').value = "";
+            document.getElementById('new-user-pass').required = true;
+            document.getElementById('pass-hint-label').textContent = "";
+            document.getElementById('new-user-photo-preview').src = 'usuarios/subadmin_default.svg';
+            document.getElementById('btn-cancelar-edicion-usr').style.display = 'none';
+        }
+
+        async function guardarNuevoUsuario(event) {
+            event.preventDefault();
+            const sesion = obtenerSesionActual();
+            if (!sesion || sesion.rol !== 'Administrador Principal') {
+                alert("🔒 Solo el 'Administrador Principal' puede crear o editar cuentas de usuarios.");
+                return;
+            }
+
+            const editId = document.getElementById('edit-user-id').value;
+            const nombre = document.getElementById('new-user-nombre').value.trim();
+            const usuario = document.getElementById('new-user-login').value.trim().toLowerCase();
+            const password = document.getElementById('new-user-pass').value.trim();
+            const rol = document.getElementById('new-user-rol').value;
+            const cargo = document.getElementById('new-user-cargo').value.trim();
+            const fotoFile = document.getElementById('new-user-foto').files[0];
+
+            const formData = new FormData();
+            formData.append('requesterRole', sesion.rol);
+            if (editId) formData.append('id', editId);
+            formData.append('nombre', nombre);
+            formData.append('usuario', usuario);
+            if (password) formData.append('password', password);
+            formData.append('rol', rol);
+            formData.append('cargo', cargo);
+            if (fotoFile) formData.append('fotoPerfil', fotoFile);
+
+            try {
+                const res = await fetch('/api/users/save', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    if (editId && editId === sesion.id && data.usuario) {
+                        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
+                        aplicarEstadoSesionUI();
+                    }
+                    alert("¡Usuario y foto de perfil guardados correctamente en la carpeta usuarios/!");
+                    limpiarFormularioUsuario();
+                    cargarTablaUsuarios();
+                    return;
+                } else {
+                    alert(data.mensaje || "No se pudo guardar el usuario.");
+                }
+            } catch (e) {
+                alert("Error de conexión con el servidor.");
+            }
+        }
+
+        async function eliminarCuentaUsuario(id) {
+            const sesion = obtenerSesionActual();
+            if (!sesion || sesion.rol !== 'Administrador Principal') return;
+            if (!confirm("¿Estás seguro de eliminar esta cuenta de usuario?")) return;
+
+            try {
+                const res = await fetch('/api/users/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requesterRole: sesion.rol, id })
+                });
+                if (res.ok) {
+                    cargarTablaUsuarios();
+                }
+            } catch (e) {}
+        }
+
+        function filtrarTarjetasCatalogo(termino) {
+            const q = String(termino || '').toLowerCase().trim();
+            const cards = document.querySelectorAll('#grid-view .anim-card');
+            cards.forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        // Abrir interfaz mediana donde nada más sale la animación 3D
+        function abrirSimulacion3D() {
+            if (!currentItem || !currentItem.codigoAnimacion) return;
+            const modal = document.getElementById('modal-simulacion-3d');
+            const iframe = document.getElementById('simulacion-iframe-view');
+
+            const htmlSimulacion = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #050d21; }
+    </style>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"><\/script>
+</head>
+<body>
+    <a-scene embedded vr-mode-ui="enabled: false" renderer="colorManagement: true, physicallyCorrectLights" background="color: #050d21">
+        <a-entity camera look-controls="enabled: true" wasd-controls="enabled: true" position="0 0 0.85"></a-entity>
+        <a-entity position="0 0 0">
+            ${currentItem.codigoAnimacion}
+        </a-entity>
+    </a-scene>
+    <script>
+        let hueCromatico = 180;
+        function animarColoresSimulacion() {
+            hueCromatico = (hueCromatico + 1.2) % 360;
+            const colorFrontal = 'hsl(' + hueCromatico + ', 100%, 78%)';
+            const colorGlow = 'hsl(' + ((hueCromatico + 50) % 360) + ', 100%, 60%)';
+            const colorAcento = 'hsl(' + ((hueCromatico + 120) % 360) + ', 100%, 70%)';
+
+            document.querySelectorAll('.texto-color-cambiante').forEach(el => el.setAttribute('color', colorFrontal));
+            document.querySelectorAll('.texto-glow-cambiante').forEach(el => el.setAttribute('color', colorGlow));
+            document.querySelectorAll('.texto-acento-cambiante').forEach(el => el.setAttribute('color', colorAcento));
+            requestAnimationFrame(animarColoresSimulacion);
+        }
+        requestAnimationFrame(animarColoresSimulacion);
+    <\/script>
+</body>
+</html>`;
+
+            iframe.srcdoc = htmlSimulacion;
+            modal.style.display = 'flex';
+        }
+
+        function cerrarSimulacion3D() {
+            const modal = document.getElementById('modal-simulacion-3d');
+            const iframe = document.getElementById('simulacion-iframe-view');
+            modal.style.display = 'none';
+            iframe.srcdoc = '';
+        }
+    </script>
+
+    <!-- ======================================================================
+         SCRIPT CMS DINÁMICO (LÓGICA ORIGINAL 100% INTACTA)
+         ====================================================================== -->
     <script>
         let dbData = [];
         let currentItem = null;
@@ -525,6 +1946,10 @@
                             <span class="meta-label">ID de Registro</span>
                             <span class="meta-value">#${currentItem.id}</span>
                         </div>
+                        <div class="repo-row-actions">
+                            <button class="btn" onclick="editarAnimacion()">Editar</button>
+                            <button class="btn btn-danger" onclick="intentarEliminarAnimacion()">Eliminar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -545,9 +1970,12 @@
                         </div>
                     </div>
 
-                    <!-- Panel Derecho: Código -->
+                    <!-- Panel Derecho: Código con tamaño fijo, scroll vertical y botón Ver Simulación -->
                     <div class="panel">
-                        <h3 class="panel-title">Código de Animación 3D (A-Frame)</h3>
+                        <div class="panel-header-row">
+                            <h3 class="panel-title">Código de Animación 3D (A-Frame)</h3>
+                            <button type="button" class="btn btn-primary" onclick="abrirSimulacion3D()">▶ Ver Simulación</button>
+                        </div>
                         <div class="code-box">
 <pre>${htmlCodeSafe}</pre>
                         </div>
@@ -557,6 +1985,8 @@
 
             document.getElementById('grid-view').style.display = 'none';
             document.getElementById('detail-view').style.display = 'block';
+            const toolbar = document.getElementById('catalog-toolbar-bar');
+            if (toolbar) toolbar.style.display = 'none';
             
             document.getElementById('btn-inicio').style.display = 'none';
             document.getElementById('nav-actions').style.display = 'none';
@@ -570,6 +2000,8 @@
             currentItem = null;
             document.getElementById('detail-view').style.display = 'none';
             document.getElementById('grid-view').style.display = 'grid';
+            const toolbar = document.getElementById('catalog-toolbar-bar');
+            if (toolbar) toolbar.style.display = 'flex';
             
             document.getElementById('btn-regresar').style.display = 'none';
             document.getElementById('action-buttons').style.display = 'none';
@@ -697,6 +2129,7 @@
                 });
 
                 if(response.ok) {
+                    salidaAutorizada = true;
                     alert("¡Guardado correctamente!");
                     window.location.reload();
                 } else {
@@ -720,6 +2153,7 @@
                 });
 
                 if(response.ok) {
+                    salidaAutorizada = true;
                     alert("¡Eliminado correctamente!");
                     window.location.reload();
                 } else {
@@ -731,7 +2165,11 @@
         }
 
         // Iniciar
-        window.onload = cargarDatos;
+        window.onload = () => {
+            inicializarGuardiaDeNavegacion();
+            aplicarEstadoSesionUI();
+            cargarDatos();
+        };
     </script>
 </body>
 </html>

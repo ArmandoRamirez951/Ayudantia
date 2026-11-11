@@ -1,0 +1,37 @@
+{
+  "usuarios": [
+    {
+      "id": "usr-admin-01",
+      "usuario": "admin",
+      "password": "admin2026",
+      "nombre": "Administrador General",
+      "rol": "Administrador Principal",
+      "cargo": "Director de Sistema AR • FCA UABC",
+      "fotoPerfil": "usuarios/admin_default.svg",
+      "activo": true,
+      "creado": "2026-01-15"
+    },
+    {
+      "id": "usr-sub-01",
+      "usuario": "subadmin",
+      "password": "sub2026",
+      "nombre": "Coordinador Académico",
+      "rol": "Subadministrador",
+      "cargo": "Gestor de Contenidos AR • FCA",
+      "fotoPerfil": "usuarios/subadmin_default.svg",
+      "activo": true,
+      "creado": "2026-02-10"
+    },
+    {
+      "id": "usr-sub-02",
+      "usuario": "ayudante",
+      "password": "ayudante2026",
+      "nombre": "Ayudante de Cátedra",
+      "rol": "Subadministrador",
+      "cargo": "Soporte de Laboratorio • UABC",
+      "fotoPerfil": "usuarios/subadmin_default.svg",
+      "activo": true,
+      "creado": "2026-03-01"
+    }
+  ]
+}

@@ -4,177 +4,807 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Ayudantía</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Sistema de Realidad Virtual • FCA UABC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #0ea5e9;
-            --primary-hover: #0284c7;
-            --secondary: #334155;
-            --secondary-hover: #475569;
-            --bg-color: #0f172a;
-            --text-color: #f8fafc;
+            --uabc-blue-dark: #092468;
+            --uabc-blue-main: #0f368e;
+            --uabc-blue-light: #1746b0;
+            --uabc-green: #00843d;
+            --uabc-green-dark: #006b31;
+            --uabc-gold: #f5b316;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            padding: 40px 0;
-            font-size: 16px;
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top right, #1e293b, var(--bg-color));
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--uabc-blue-dark);
+            color: var(--white);
             min-height: 100vh;
-            text-align: center;
-            overflow-y: auto;
-            /* Habilita el scroll de arriba a abajo */
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: -webkit-linear-gradient(45deg, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: #94a3b8;
-            margin-bottom: 50px;
-        }
-
-        .menu-container {
             display: flex;
-            flex-direction: row;
-            /* Botones horizontales */
-            justify-content: center;
-            gap: 30px;
-            width: 90%;
-            max-width: 600px;
-            flex-wrap: wrap;
-            /* Si la pantalla es pequeña, bajan solos */
+            flex-direction: column;
+            overflow-x: hidden;
         }
 
-        .btn {
+        /* ==========================================================================
+           1. CABECERA BLANCA OFICIAL (Solo logo uabc_fca.jpg y botón Iniciar sesión)
+           ========================================================================== */
+        .uabc-navbar {
+            background: #ffffff;
+            height: 100px;
+            padding: 0 42px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        .uabc-brand-link {
+            display: flex;
+            align-items: center;
             text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .uabc-corner-logo {
+            height: 74px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .uabc-nav-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .uabc-login-btn {
+            color: #475569;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 0.94rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .uabc-login-btn:hover {
+            border-color: var(--uabc-green);
+            color: var(--uabc-green);
+            background: #f0fdf4;
+        }
+
+        /* ==========================================================================
+           2. ESCENARIO CENTRAL AZUL CON FONDO interfaz/estampado_uabc.png
+           ========================================================================== */
+        .uabc-hero-stage {
+            position: relative;
+            flex: 1;
+            background: radial-gradient(circle at 50% 42%, #1746b0 0%, #0d3286 58%, #08205c 100%);
             display: flex;
             flex-direction: column;
-            /* Icono arriba, texto abajo */
+            justify-content: center;
+            align-items: center;
+            padding: 40px 24px 50px 24px;
+            overflow: hidden;
+        }
+
+        /* Imagen estampado_uabc.png de fondo */
+        .uabc-hero-bg-stamp {
+            position: absolute;
+            inset: 0;
+            background-image: url('interfaz/estampado_uabc.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: min(82vw, 900px) auto;
+            opacity: 0.22;
+            pointer-events: none;
+            z-index: 1;
+            filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.35));
+        }
+
+        .hero-center-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 920px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-center-wrapper h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.65rem;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            text-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+            letter-spacing: 0.01em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.12rem;
+            color: #dbeafe;
+            margin: 0 0 36px 0;
+            max-width: 680px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* Contenedor de los 2 cuadros gemelos del MISMO TAMAÑO (Animaciones + QR) */
+        .equal-cards-row {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 36px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        /* Ambos cuadros comparten exactamente las mismas dimensiones (320px x 340px) */
+        .btn-animaciones-card,
+        .qr-section {
+            width: 320px;
+            height: 340px;
+            border-radius: 22px;
+            padding: 26px 24px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 200px;
-            /* Cuadros grandes */
-            height: 200px;
-            /* Cuadros grandes */
-            font-size: 1.25rem;
-            font-weight: 600;
-            border-radius: 20px;
-            border: none;
+            text-align: center;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        /* Cuadro 1: Botón de Animaciones (Redirige a camara.html) */
+        .btn-animaciones-card {
+            text-decoration: none;
+            background: linear-gradient(145deg, var(--uabc-green) 0%, #059669 100%);
+            color: #ffffff;
+            border: 3px solid var(--uabc-gold);
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            backdrop-filter: blur(10px);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), #3b82f6);
-            color: white;
+        .btn-animaciones-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 132, 61, 0.6);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(51, 65, 85, 0.7);
-            color: #cbd5e1;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: var(--secondary-hover);
-            transform: translateY(-3px);
-        }
-
-        .btn-icon {
-            font-size: 3rem;
-            /* Icono mucho más grande */
-            margin-right: 0;
-            margin-bottom: 15px;
-            /* Separación entre el icono y el texto */
-        }
-
-        .qr-section {
-            margin-top: 40px;
-            background: rgba(30, 41, 59, 0.8);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .anim-icon-circle {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.35);
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+        }
+
+        .anim-card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            display: block;
+        }
+
+        .anim-card-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        /* Cuadro 2: Código QR (Mismo tamaño exacto 320px x 340px) */
+        .qr-section {
+            background: #ffffff;
+            color: #0f172a;
+            border: 3px solid var(--uabc-gold);
         }
 
         .qr-section p {
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            color: #cbd5e1;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #334155;
+            margin: 0 0 14px 0;
+            line-height: 1.35;
         }
 
         #qrcode {
-            background: white;
+            background: #ffffff;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ==========================================================================
+           3. FRANJA INFERIOR VERDE OFICIAL UABC (Limpia, sin textos)
+           ========================================================================== */
+        .uabc-green-band {
+            background: var(--uabc-green);
+            height: 68px;
+            width: 100%;
+            border-top: 4px solid var(--uabc-gold);
+            position: relative;
+            z-index: 20;
+        }
+
+        /* ==========================================================================
+           4. MODAL DE INICIO DE SESIÓN (DISEÑO UABC COMO LA INTERFAZ PRINCIPAL)
+           ========================================================================== */
+        .login-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: rgba(8, 32, 92, 0.78);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Tarjeta "Member Login" con los colores y estética de la interfaz principal UABC */
+        .member-login-card {
+            position: relative;
+            width: 100%;
+            max-width: 375px;
+            min-height: 490px;
+            background: #ffffff;
+            border: 3px solid var(--uabc-gold);
+            border-radius: 26px;
+            padding: 38px 34px 90px 34px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            animation: modalPopIn 0.22s ease-out;
+        }
+
+        @keyframes modalPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .close-login-overlay {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: var(--uabc-blue-dark);
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 5;
+        }
+
+        .close-login-overlay:hover {
+            background: var(--uabc-green);
+            border-color: var(--uabc-green);
+            color: #ffffff;
+        }
+
+        /* Onda inferior con los colores institucionales de la interfaz principal (Verde UABC y Dorado) */
+        .member-login-card::before {
+            content: "";
+            position: absolute;
+            bottom: -44px;
+            left: -12%;
+            width: 124%;
+            height: 132px;
+            background: var(--uabc-gold);
+            border-radius: 50% 50% 0 0 / 65% 65% 0 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .member-login-card::after {
+            content: "";
+            position: absolute;
+            bottom: -50px;
+            left: -12%;
+            width: 124%;
+            height: 130px;
+            background: linear-gradient(90deg, var(--uabc-blue-dark) 0%, var(--uabc-green) 60%, #059669 100%);
+            border-radius: 50% 50% 0 0 / 65% 65% 0 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Círculo de Avatar Superior en tonos UABC */
+        .member-avatar-ring {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, var(--uabc-blue-dark), var(--uabc-green), var(--uabc-gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 24px rgba(9, 36, 104, 0.22);
+            position: relative;
+            z-index: 2;
+        }
+
+        .member-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .member-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .member-avatar-svg {
+            width: 54px;
+            height: 54px;
+        }
+
+        .member-login-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.38rem;
+            font-weight: 800;
+            margin: 0 0 22px 0;
+            color: var(--uabc-blue-dark);
+            position: relative;
+            z-index: 2;
+        }
+
+        .auth-error-box {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        .member-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pill-input-group {
+            width: 100%;
+            height: 48px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--uabc-blue-dark) 0%, var(--uabc-blue-light) 100%);
+            border: 1.5px solid rgba(245, 179, 22, 0.45);
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            gap: 10px;
+            box-shadow: 0 6px 15px rgba(9, 36, 104, 0.22);
+        }
+
+        .pill-icon {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pill-input-group input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            outline: none;
+            width: 100%;
+        }
+
+        .pill-input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .member-options-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.74rem;
+            color: #334155;
+            padding: 2px 6px;
+        }
+
+        .remember-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .remember-label input {
+            accent-color: var(--uabc-green);
+        }
+
+        .forgot-link {
+            color: var(--uabc-green);
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .member-login-btn {
+            width: 165px;
+            height: 44px;
+            border-radius: 999px;
+            border: 2px solid var(--uabc-gold);
+            background: linear-gradient(135deg, var(--uabc-green) 0%, #059669 100%);
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.96rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 8px 18px rgba(0, 132, 61, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .member-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(0, 132, 61, 0.5);
+        }
+
+        @media (max-width: 740px) {
+            .uabc-navbar {
+                padding: 0 20px;
+                height: 86px;
+            }
+            .uabc-corner-logo {
+                height: 56px;
+            }
+            .hero-center-wrapper h1 {
+                font-size: 1.95rem;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Bienvenido al Sistema</h1>
-    <p>Selecciona una opción para continuar</p>
-
-    <div class="menu-container">
-        <!-- Botón que nos manda a la cámara (Realidad Aumentada) -->
-        <a href="camara.html" class="btn btn-primary">
-            <span class="btn-icon">🚀</span> Animaciones
+    <!-- 1. CABECERA BLANCA OFICIAL (Solo uabc_fca.jpg en la esquina e Iniciar sesión a la derecha) -->
+    <header class="uabc-navbar">
+        <a href="index.html" class="uabc-brand-link" title="Facultad de Contaduría y Administración - UABC">
+            <img src="interfaz/uabc_fca.jpg" alt="UABC Facultad de Contaduría y Administración" class="uabc-corner-logo">
         </a>
 
-        <!-- Botón de administrador (Nos manda al mini-repositorio) -->
-        <a href="programacion.html" class="btn btn-secondary">
-            <span class="btn-icon">⚙️</span> Sección de programación
-        </a>
+        <div class="uabc-nav-actions">
+            <button type="button" class="uabc-login-btn" onclick="abrirModalLogin()">Iniciar sesión</button>
+        </div>
+    </header>
 
-        <!-- Sección del Código QR Dinámico -->
-        <div class="qr-section">
-            <p>Escanea para ir a la cámara desde tu teléfono 👇</p>
-            <div id="qrcode"></div>
+    <!-- 2. ESCENARIO CENTRAL AZUL CON FONDO interfaz/estampado_uabc.png -->
+    <main class="uabc-hero-stage">
+        <div class="uabc-hero-bg-stamp"></div>
+
+        <div class="hero-center-wrapper">
+            <h1>Sistema de Realidad Virtual</h1>
+            <p class="hero-subtitle">Plataforma de realidad virtual aplicada a las presentaciones (diapositivas)</p>
+
+            <!-- Botón de Animaciones y Código QR del mismo tamaño -->
+            <div class="equal-cards-row">
+                <!-- Cuadro 1: Botón Animaciones (Redirige a camara.html) -->
+                <a href="camara.html" class="btn-animaciones-card">
+                    <div class="anim-icon-circle">🚀</div>
+                    <span class="anim-card-title">Animaciones</span>
+                    <p class="anim-card-desc">Haz clic aquí para abrir la cámara y visualizar las presentaciones en realidad virtual.</p>
+                </a>
+
+                <!-- Cuadro 2: Código QR Dinámico (Mismo tamaño exacto) -->
+                <div class="qr-section">
+                    <p>Escanea para ir a la cámara desde tu teléfono 👇</p>
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. FRANJA INFERIOR VERDE OFICIAL UABC (Sin textos) -->
+    <footer class="uabc-green-band"></footer>
+
+    <!-- ======================================================================
+         4. CUADRO DE INICIO DE SESIÓN ("MEMBER LOGIN" ENCIMA DE LA INTERFAZ)
+         ====================================================================== -->
+    <div class="login-modal-backdrop" id="login-modal-overlay" onclick="cerrarModalLoginFondo(event)">
+        <div class="member-login-card">
+            <button type="button" class="close-login-overlay" onclick="cerrarModalLogin()" title="Cerrar">✕</button>
+
+            <!-- Círculo de Avatar Superior (Carga foto de carpeta usuarios/ o silueta) -->
+            <div class="member-avatar-ring">
+                <div class="member-avatar-inner">
+                    <img id="login-live-avatar" src="" alt="Foto Perfil">
+                    <svg id="login-default-svg" class="member-avatar-svg" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="22" r="11" fill="#092468"/>
+                        <path d="M12 56C12 43 52 43 52 56" fill="#00843d"/>
+                    </svg>
+                </div>
+            </div>
+
+            <h2 class="member-login-title">Iniciar Sesión</h2>
+
+            <div class="auth-error-box" id="auth-error-msg">
+                Usuario o contraseña incorrectos.
+            </div>
+
+            <form class="member-form" id="login-form" onsubmit="procesarLoginDesdeInicio(event)">
+                <!-- Píldora Username -->
+                <div class="pill-input-group">
+                    <span class="pill-icon">👤</span>
+                    <input type="text" id="login-user" placeholder="Usuario" required autocomplete="username" oninput="previsualizarFotoLogin(this.value)">
+                </div>
+
+                <!-- Píldora Password -->
+                <div class="pill-input-group">
+                    <span class="pill-icon">🔒</span>
+                    <input type="password" id="login-pass" placeholder="••••••••••••••" required autocomplete="current-password">
+                </div>
+
+                <!-- Opción Recordarme funcional (Sin Olvidaste tu contraseña) -->
+                <div class="member-options-row">
+                    <label class="remember-label">
+                        <input type="checkbox" id="remember-me-check" checked> Recordarme
+                    </label>
+                </div>
+
+                <!-- Botón Login -->
+                <button type="submit" class="member-login-btn">Ingresar</button>
+            </form>
         </div>
     </div>
 
     <script>
-        // Esta pequeña fórmula toma el link en el que estás actualmente (ya sea el local o el de GitHub) 
-        // y le pega automáticamente 'camara.html' al final de manera inteligente.
-        const currentUrl = window.location.href;
-        const cameraUrl = new URL('camara.html', currentUrl).href;
+        // 1. Generación Inteligente del Código QR Dinámico
+        // Si estás en localhost en tu PC, apunta al enlace HTTPS de GitHub Pages
+        // para que al escanearlo desde el celular abra la cámara con permisos HTTPS sin fallar.
+        function inicializarQR() {
+            const qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = "";
 
-        // Generamos el Código QR
-        new QRCode(document.getElementById("qrcode"), {
-            text: cameraUrl,
-            width: 250, /* QR Más grande */
-            height: 250, /* QR Más grande */
-            colorDark: "#0f172a",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+            const currentUrl = window.location.href.split('?')[0];
+            let cameraUrl = new URL('camara.html', currentUrl).href;
+
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                cameraUrl = 'https://armandoramirez951.github.io/Ayudantia/camara.html';
+            }
+
+            new QRCode(qrContainer, {
+                text: cameraUrl,
+                width: 210,
+                height: 210,
+                colorDark: "#092468",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        inicializarQR();
+
+        // 2. Lógica de Inicio de Sesión encima de la Interfaz Principal + Función "Recordarme"
+        const AUTH_SESSION_KEY = 'ayudantia_ar_session_2026';
+        const REMEMBER_STORAGE_KEY = 'ayudantia_ar_remember_2026';
+        let cachedUsersList = [];
+
+        function cargarCredencialesRecordadas() {
+            try {
+                const raw = localStorage.getItem(REMEMBER_STORAGE_KEY);
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (data && data.usuario) {
+                        document.getElementById('login-user').value = data.usuario;
+                        document.getElementById('login-pass').value = data.password || '';
+                        document.getElementById('remember-me-check').checked = true;
+                        previsualizarFotoLogin(data.usuario);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function abrirModalLogin() {
+            document.getElementById('auth-error-msg').style.display = 'none';
+            cargarCredencialesRecordadas();
+            document.getElementById('login-modal-overlay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('login-user').focus();
+            }, 80);
+        }
+
+        function cerrarModalLogin() {
+            document.getElementById('login-modal-overlay').style.display = 'none';
+        }
+
+        function cerrarModalLoginFondo(event) {
+            if (event.target.id === 'login-modal-overlay') {
+                cerrarModalLogin();
+            }
+        }
+
+        function autocompletarCredenciales(user, pass) {
+            document.getElementById('login-user').value = user;
+            document.getElementById('login-pass').value = pass;
+            document.getElementById('auth-error-msg').style.display = 'none';
+            previsualizarFotoLogin(user);
+        }
+
+        async function previsualizarFotoLogin(username) {
+            const clean = String(username || '').trim().toLowerCase();
+            const imgEl = document.getElementById('login-live-avatar');
+            const svgEl = document.getElementById('login-default-svg');
+
+            if (!cachedUsersList.length) {
+                try {
+                    const r = await fetch('usuarios.json?t=' + Date.now());
+                    if (r.ok) {
+                        const d = await r.json();
+                        cachedUsersList = d.usuarios || [];
+                    }
+                } catch (e) {}
+            }
+
+            const found = cachedUsersList.find(u => u.usuario.toLowerCase() === clean);
+            if (found && found.fotoPerfil) {
+                imgEl.src = found.fotoPerfil + '?t=' + Date.now();
+                imgEl.style.display = 'block';
+                svgEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                svgEl.style.display = 'block';
+            }
+        }
+
+        async function procesarLoginDesdeInicio(event) {
+            event.preventDefault();
+            const usuarioInput = document.getElementById('login-user').value.trim();
+            const passwordInput = document.getElementById('login-pass').value;
+            const errorBox = document.getElementById('auth-error-msg');
+            errorBox.style.display = 'none';
+
+            let usuarioAutenticado = null;
+
+            // Validar contra el servidor Node.js
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario: usuarioInput, password: passwordInput })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.ok && data.usuario) {
+                        usuarioAutenticado = data.usuario;
+                    }
+                }
+            } catch (err) {}
+
+            // Respaldo contra usuarios.json
+            if (!usuarioAutenticado) {
+                try {
+                    const resJson = await fetch('usuarios.json?t=' + Date.now());
+                    if (resJson.ok) {
+                        const dbJson = await resJson.json();
+                        const match = (dbJson.usuarios || []).find(
+                            u => u.usuario.toLowerCase() === usuarioInput.toLowerCase() && u.password === passwordInput
+                        );
+                        if (match) {
+                            usuarioAutenticado = {
+                                id: match.id,
+                                usuario: match.usuario,
+                                nombre: match.nombre,
+                                rol: match.rol,
+                                cargo: match.cargo,
+                                fotoPerfil: match.fotoPerfil || 'usuarios/admin_default.svg'
+                            };
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            if (!usuarioAutenticado) {
+                errorBox.textContent = "Usuario o contraseña incorrectos.";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            // Lógica funcional del botón "Recordarme"
+            const recordar = document.getElementById('remember-me-check').checked;
+            if (recordar) {
+                localStorage.setItem(REMEMBER_STORAGE_KEY, JSON.stringify({
+                    usuario: usuarioInput,
+                    password: passwordInput
+                }));
+            } else {
+                localStorage.removeItem(REMEMBER_STORAGE_KEY);
+            }
+
+            // Guardar sesión y entrar al perfil administrativo
+            sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(usuarioAutenticado));
+            window.location.href = 'programacion.html';
+        }
+
+        // Si fue redirigido desde programacion.html sin sesión activa, abrir el cuadro automáticamente
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('login') === '1') {
+                abrirModalLogin();
+            }
         });
     </script>
 </body>
