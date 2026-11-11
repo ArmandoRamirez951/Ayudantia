@@ -235,18 +235,20 @@
             overflow-x: hidden;
         }
 
-        /* Imagen estampado_uabc.png abarcando todo el fondo de pantalla de la interfaz */
+        /* Imagen estampado_uabc.png abarcando toda la interfaz de cada botón */
         .workspace-bg-stamp {
             position: fixed;
-            top: 76px;
+            top: 0;
             left: 270px;
             right: 0;
             bottom: 0;
+            width: calc(100vw - 270px);
+            height: 100vh;
             background-image: url('interfaz/estampado_uabc.png');
             background-repeat: no-repeat;
             background-position: center center;
-            background-size: 92% 92%;
-            opacity: 0.20;
+            background-size: 100% 100%;
+            opacity: 0.28;
             pointer-events: none;
             z-index: 0;
         }
@@ -254,28 +256,30 @@
         @media (max-width: 900px) {
             .workspace-bg-stamp {
                 left: 0;
-                background-size: cover;
+                width: 100vw;
+                background-size: 100% 100%;
             }
         }
 
-        /* Barra Superior con el Título Centrado */
+        /* Barra Superior con el Título Centrado y Más Grande */
         .navbar {
             width: 100%;
-            background-color: #ffffff;
-            border-bottom: 3px solid var(--uabc-green);
+            background-color: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border-bottom: 4px solid var(--uabc-green);
             display: flex;
             justify-content: center;
-            padding: 14px 0;
+            padding: 18px 0;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: var(--shadow-sm);
-            min-height: 76px;
+            min-height: 88px;
         }
 
         .nav-content {
-            width: 94%;
-            max-width: 1280px;
+            width: 97%;
+            max-width: 1560px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -296,19 +300,21 @@
         }
 
         .top-mini-logo {
-            height: 48px;
+            height: 52px;
             width: auto;
             object-fit: contain;
         }
 
-        /* Título de hasta arriba perfectamente centrado */
+        /* Título de hasta arriba centrado y mucho más grande para cada interfaz de cada botón */
         .nav-title-centered {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.45rem;
-            font-weight: 800;
+            font-size: 2.15rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
             margin: 0;
             color: var(--uabc-blue);
             text-align: center;
@@ -395,19 +401,55 @@
         }
 
         .toolbar-title {
-            font-size: 0.98rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--uabc-blue);
         }
 
         .search-input {
-            padding: 9px 14px;
+            padding: 10px 16px;
             border-radius: 999px;
-            border: 1px solid var(--border-strong);
+            border: 2px solid var(--border-strong);
             background: #ffffff;
             color: var(--text-main);
-            font-size: 0.85rem;
-            min-width: 250px;
+            font-size: 0.9rem;
+            min-width: 310px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--uabc-green);
+            box-shadow: 0 0 0 4px rgba(0, 114, 63, 0.14);
+        }
+
+        .smart-search-badge {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: #f0fdf4;
+            color: var(--uabc-green);
+            border: 1px solid #bbf7d0;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .anim-card.exact-match-highlight {
+            border: 2px solid var(--uabc-green);
+            box-shadow: 0 0 0 4px rgba(0, 114, 63, 0.18), var(--shadow-md);
+        }
+
+        .card-audit-chip {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         /* Galería de tarjetas (#grid-view) */
@@ -877,6 +919,21 @@
             gap: 16px;
         }
 
+        /* Interfaz de Agregar Nueva Animación: el doble de ancha (1120px) y más larga */
+        #modal-agregar .modal-content {
+            width: 95%;
+            max-width: 1120px;
+            min-height: 82vh;
+            max-height: 94vh;
+            padding: 38px 46px;
+            gap: 20px;
+        }
+
+        #modal-agregar #input-codigo {
+            min-height: 230px;
+            font-size: 0.84rem;
+        }
+
         .modal-content h2 {
             margin: 0;
             font-family: 'Montserrat', sans-serif;
@@ -1224,6 +1281,9 @@
                     <button type="button" class="sidebar-link active" id="nav-link-catalogo" onclick="cambiarVistaSeccion('catalogo')">
                         <span>🎬</span> Mis Animaciones
                     </button>
+                    <button type="button" class="sidebar-link" id="nav-link-todas" onclick="cambiarVistaSeccion('todas')" style="display: none;">
+                        <span>🌐</span> Todas las Animaciones
+                    </button>
                     <button type="button" class="sidebar-link" id="nav-link-roles" onclick="cambiarVistaSeccion('roles')">
                         <span>👥</span> Usuarios
                     </button>
@@ -1267,12 +1327,13 @@
 
             <div class="main-container">
 
-                <!-- SECCIÓN 1: MIS ANIMACIONES (Con el botón + Agregar en la esquina dentro de esta interfaz) -->
+                <!-- SECCIÓN 1: MIS ANIMACIONES / TODAS LAS ANIMACIONES -->
                 <div id="catalogo-section-wrapper">
                     <div class="catalog-toolbar" id="catalog-toolbar-bar">
                         <div class="toolbar-left">
-                            <div class="toolbar-title">📦 Catálogo de Diapositivas y Animaciones</div>
-                            <input type="search" class="search-input" placeholder="🔍 Buscar diapositiva o presentación..." oninput="filtrarTarjetasCatalogo(this.value)">
+                            <div class="toolbar-title" id="catalog-subtitle-label">📦 Catálogo de Diapositivas y Animaciones</div>
+                            <input type="search" id="smart-search-input" class="search-input" placeholder="🔍 Buscador inteligente: escribe para filtrar al instante..." oninput="filtrarTarjetasCatalogo(this.value)">
+                            <span class="smart-search-badge" id="smart-search-status"></span>
                         </div>
 
                         <!-- Botón + Agregar ubicado en la esquina dentro de la interfaz de Mis Animaciones -->
@@ -1619,7 +1680,12 @@
             document.getElementById('sidebar-user-name').textContent = sesion.nombre || sesion.usuario;
             document.getElementById('sidebar-user-role').textContent = rolVisual;
 
-            // Solo el perfil de Administrador General tiene el botón de "Usuarios" en el menú lateral
+            // Solo el perfil de Administrador General tiene los botones "Todas las Animaciones" y "Usuarios"
+            const btnTodasSidebar = document.getElementById('nav-link-todas');
+            if (btnTodasSidebar) {
+                btnTodasSidebar.style.display = esAdminPrincipal ? 'flex' : 'none';
+            }
+
             const btnUsuariosSidebar = document.getElementById('nav-link-roles');
             if (btnUsuariosSidebar) {
                 btnUsuariosSidebar.style.display = esAdminPrincipal ? 'flex' : 'none';
@@ -1696,15 +1762,36 @@
             const sesion = obtenerSesionActual();
             if (!sesion) return;
 
+            const nuevoNombre = document.getElementById('mi-perfil-nombre').value.trim();
+            const nuevoCargo = document.getElementById('mi-perfil-cargo').value.trim();
+            const nuevaPass = document.getElementById('mi-perfil-pass').value.trim();
+            const archivoFoto = document.getElementById('mi-perfil-foto').files[0];
+
+            // Verificar si no se ha modificado nada
+            const sinCambios = (
+                nuevoNombre === (sesion.nombre || '').trim() &&
+                nuevoCargo === (sesion.cargo || '').trim() &&
+                nuevaPass === '' &&
+                !archivoFoto
+            );
+
+            if (sinCambios) {
+                alert("ℹ️ No se ha modificado nada.");
+                return;
+            }
+
+            // Pedir confirmación antes de actualizar
+            if (!confirm("⚠️ ¿Estás seguro de que deseas actualizar los datos del usuario?")) {
+                return;
+            }
+
             const formData = new FormData();
             formData.append('id', sesion.id);
             formData.append('usuario', sesion.usuario);
-            formData.append('nombre', document.getElementById('mi-perfil-nombre').value.trim());
-            formData.append('cargo', document.getElementById('mi-perfil-cargo').value.trim());
-            const nuevaPass = document.getElementById('mi-perfil-pass').value.trim();
+            formData.append('nombre', nuevoNombre);
+            formData.append('cargo', nuevoCargo);
             if (nuevaPass) formData.append('password', nuevaPass);
 
-            const archivoFoto = document.getElementById('mi-perfil-foto').files[0];
             if (archivoFoto) {
                 formData.append('fotoPerfil', archivoFoto);
             }
@@ -1740,20 +1827,26 @@
             eliminarAnimacion();
         }
 
+        let modoVistaCatalogo = 'mis'; // 'mis' = Mis Animaciones | 'todas' = Todas las Animaciones
+
         function cambiarVistaSeccion(seccion) {
             const catalogoWrapper = document.getElementById('catalogo-section-wrapper');
             const rolesView = document.getElementById('roles-view');
             const instruccionesView = document.getElementById('instrucciones-view');
 
             const linkCat = document.getElementById('nav-link-catalogo');
+            const linkTodas = document.getElementById('nav-link-todas');
             const linkRoles = document.getElementById('nav-link-roles');
             const linkInst = document.getElementById('nav-link-instrucciones');
 
             const actionButtons = document.getElementById('action-buttons');
             const btnRegresar = document.getElementById('btn-regresar');
             const headerTitle = document.getElementById('section-header-title');
+            const navActions = document.getElementById('nav-actions');
+            const subtitleLabel = document.getElementById('catalog-subtitle-label');
 
             linkCat.classList.remove('active');
+            if (linkTodas) linkTodas.classList.remove('active');
             linkRoles.classList.remove('active');
             linkInst.classList.remove('active');
 
@@ -1763,7 +1856,7 @@
 
             if (seccion === 'roles') {
                 const sesion = obtenerSesionActual();
-                const esAdminPrincipal = sesion && (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador');
+                const esAdminPrincipal = sesion && (sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal');
                 if (!esAdminPrincipal) {
                     return;
                 }
@@ -1779,17 +1872,31 @@
                 headerTitle.textContent = 'Instrucciones';
                 actionButtons.style.display = 'none';
                 btnRegresar.style.display = 'none';
+            } else if (seccion === 'todas') {
+                const sesion = obtenerSesionActual();
+                const esAdminPrincipal = sesion && (sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal');
+                if (!esAdminPrincipal) {
+                    return;
+                }
+                modoVistaCatalogo = 'todas';
+                catalogoWrapper.style.display = 'block';
+                if (linkTodas) linkTodas.classList.add('active');
+                headerTitle.textContent = 'Todas las Animaciones';
+                if (subtitleLabel) subtitleLabel.textContent = '🌐 Todas las Animaciones del Sistema (Registro General)';
+                if (btnRegresar) btnRegresar.textContent = '⬅ Todas las Animaciones';
+                cerrarDetalle();
+                if (navActions) navActions.style.display = 'none';
+                renderGrid();
             } else {
+                modoVistaCatalogo = 'mis';
                 catalogoWrapper.style.display = 'block';
                 linkCat.classList.add('active');
                 headerTitle.textContent = 'Mis Animaciones';
-                if (currentItem) {
-                    actionButtons.style.display = 'flex';
-                    btnRegresar.style.display = 'flex';
-                } else {
-                    actionButtons.style.display = 'none';
-                    btnRegresar.style.display = 'none';
-                }
+                if (subtitleLabel) subtitleLabel.textContent = '📦 Catálogo de Diapositivas y Animaciones';
+                if (btnRegresar) btnRegresar.textContent = '⬅ Mis Animaciones';
+                cerrarDetalle();
+                if (navActions) navActions.style.display = 'flex';
+                renderGrid();
             }
         }
 
@@ -2022,6 +2129,30 @@
             const cargo = document.getElementById('new-user-cargo').value.trim();
             const fotoFile = document.getElementById('new-user-foto').files[0];
 
+            // Si se está actualizando un usuario existente:
+            // 1. Verificar si no se ha modificado nada
+            // 2. Pedir confirmación antes de actualizar
+            if (editId) {
+                const origUser = cachedUsersList.find(item => item.id === editId);
+                if (origUser) {
+                    const sinCambios = (
+                        nombre === (origUser.nombre || '').trim() &&
+                        usuario === (origUser.usuario || '').trim().toLowerCase() &&
+                        (password === '' || password === (origUser.password || '')) &&
+                        cargo === (origUser.cargo || '').trim() &&
+                        !fotoFile
+                    );
+                    if (sinCambios) {
+                        alert("ℹ️ No se ha modificado nada.");
+                        return;
+                    }
+                }
+
+                if (!confirm("⚠️ ¿Estás seguro de que deseas actualizar los datos de este usuario?")) {
+                    return;
+                }
+            }
+
             const formData = new FormData();
             formData.append('requesterRole', 'Administrador Principal');
             if (editId) formData.append('id', editId);
@@ -2072,12 +2203,90 @@
             } catch (e) {}
         }
 
+        // Buscador inteligente en tiempo real mientras se escribe para encontrar el exacto
+        function normalizarTextoBusqueda(str) {
+            return String(str || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
         function filtrarTarjetasCatalogo(termino) {
-            const q = String(termino || '').toLowerCase().trim();
-            const cards = document.querySelectorAll('#grid-view .anim-card');
+            const q = normalizarTextoBusqueda(termino);
+            const tokens = q.split(/\s+/).filter(Boolean);
+            const cards = Array.from(document.querySelectorAll('#grid-view .anim-card'));
+            const statusBadge = document.getElementById('smart-search-status');
+
+            if (!q) {
+                cards.forEach(card => {
+                    card.style.display = 'flex';
+                    card.style.order = '0';
+                    card.classList.remove('exact-match-highlight');
+                });
+                if (statusBadge) statusBadge.style.display = 'none';
+                return;
+            }
+
+            let visibles = 0;
+            let exactas = 0;
+
             cards.forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+                const diapositiva = normalizarTextoBusqueda(card.getAttribute('data-diapositiva'));
+                const presentacion = normalizarTextoBusqueda(card.getAttribute('data-presentacion'));
+                const autor = normalizarTextoBusqueda(card.getAttribute('data-autor'));
+                const textoCompleto = `${diapositiva} ${presentacion} ${autor}`;
+
+                const esExacta = (diapositiva === q || presentacion === q);
+                const empiezaCon = (diapositiva.startsWith(q) || presentacion.startsWith(q));
+                const coincideTokens = tokens.every(tok => textoCompleto.includes(tok));
+
+                if (esExacta) {
+                    card.style.display = 'flex';
+                    card.style.order = '-2';
+                    card.classList.add('exact-match-highlight');
+                    visibles++;
+                    exactas++;
+                } else if (empiezaCon || coincideTokens) {
+                    card.style.display = 'flex';
+                    card.style.order = empiezaCon ? '-1' : '0';
+                    card.classList.remove('exact-match-highlight');
+                    visibles++;
+                } else {
+                    card.style.display = 'none';
+                    card.classList.remove('exact-match-highlight');
+                }
             });
+
+            // Si ya encontró una coincidencia exacta, ocultar las demás para dejar únicamente la exacta
+            if (exactas > 0) {
+                cards.forEach(card => {
+                    if (!card.classList.contains('exact-match-highlight')) {
+                        card.style.display = 'none';
+                    }
+                });
+                visibles = exactas;
+            }
+
+            if (statusBadge) {
+                statusBadge.style.display = 'inline-flex';
+                if (exactas > 0) {
+                    statusBadge.style.background = '#f0fdf4';
+                    statusBadge.style.color = '#00723f';
+                    statusBadge.style.borderColor = '#bbf7d0';
+                    statusBadge.textContent = `✓ Coincidencia exacta (${exactas})`;
+                } else if (visibles > 0) {
+                    statusBadge.style.background = '#eff6ff';
+                    statusBadge.style.color = '#0b2545';
+                    statusBadge.style.borderColor = '#bfdbfe';
+                    statusBadge.textContent = `🔍 Filtrando: ${visibles} coincidencia(s)`;
+                } else {
+                    statusBadge.style.background = '#fef2f2';
+                    statusBadge.style.color = '#dc2626';
+                    statusBadge.style.borderColor = '#fecaca';
+                    statusBadge.textContent = `⚠️ Sin coincidencias para "${termino}"`;
+                }
+            }
         }
 
         // Abrir interfaz mediana donde nada más sale la animación 3D
@@ -2153,26 +2362,60 @@
             }
         }
 
-        // 2. Renderizar Cuadrícula
+        // 2. Renderizar Cuadrícula (Soporta "Mis Animaciones" y "Todas las Animaciones")
         function renderGrid() {
             const grid = document.getElementById('grid-view');
             grid.innerHTML = '';
-            
-            dbData.forEach(item => {
+
+            const sesion = obtenerSesionActual();
+            const usuarioActual = sesion ? (sesion.usuario || 'admin').toLowerCase() : 'admin';
+
+            // En "Mis Animaciones" mostramos las creadas por el usuario actual (si no tiene usuarioCreador pertenece a admin).
+            // En "Todas las Animaciones" (exclusivo de Administrador General) se muestran todas.
+            const listaMostrar = dbData.filter(item => {
+                if (modoVistaCatalogo === 'todas') return true;
+                const creador = String(item.usuarioCreador || 'admin').toLowerCase();
+                return creador === usuarioActual;
+            });
+
+            listaMostrar.forEach(item => {
+                const creadoPor = item.creadoPor || 'Administrador General (@admin)';
+                const actualizadoPor = item.actualizadoPor || creadoPor;
+                const fechaMostrada = item.fechaActualizacion || item.fechaCreacion || '10/11/2026';
+                const accionEtiqueta = item.ultimoEstado === 'Actualizado' ? 'Actualizado por' : 'Creado por';
+                const autorResponsable = item.ultimoEstado === 'Actualizado' ? actualizadoPor : creadoPor;
+
+                const infoAutoriaCard = modoVistaCatalogo === 'todas'
+                    ? `<div class="card-audit-chip">
+                           <span>👤 <strong>${accionEtiqueta}:</strong> ${autorResponsable}</span>
+                           <span>📅 <strong>Fecha:</strong> ${fechaMostrada}</span>
+                       </div>`
+                    : '';
+
                 grid.innerHTML += `
-                <div class="anim-card" onclick="abrirDetalle('${item.id}')">
+                <div class="anim-card"
+                     data-diapositiva="${item.nombreDiapositiva || ''}"
+                     data-presentacion="${item.nombrePresentacion || ''}"
+                     data-autor="${creadoPor} ${actualizadoPor}"
+                     onclick="abrirDetalle('${item.id}')">
                     <div class="card-img-container">
                         <img src="${item.foto}" alt="${item.nombreDiapositiva}">
                     </div>
                     <div class="card-body">
                         <div class="card-subtitle">${item.nombrePresentacion}</div>
                         <h3 class="card-title">${item.nombreDiapositiva}</h3>
+                        ${infoAutoriaCard}
                     </div>
                 </div>`;
             });
+
+            const inputBusqueda = document.getElementById('smart-search-input');
+            if (inputBusqueda && inputBusqueda.value.trim() !== '') {
+                filtrarTarjetasCatalogo(inputBusqueda.value);
+            }
         }
 
-        // 3. Abrir Detalle
+        // 3. Abrir Detalle (Muestra quién la creó o actualizó y la fecha cuando se hace clic en la imagen)
         function abrirDetalle(id) {
             currentItem = dbData.find(d => d.id == id);
             if(!currentItem) return;
@@ -2181,6 +2424,26 @@
             
             // Reemplazar caracteres especiales HTML para que se vea como texto en el pre
             const htmlCodeSafe = currentItem.codigoAnimacion.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            const creadoPor = currentItem.creadoPor || 'Administrador General (@admin)';
+            const fechaCreacion = currentItem.fechaCreacion || '10/11/2026';
+            const actualizadoPor = currentItem.actualizadoPor || creadoPor;
+            const fechaActualizacion = currentItem.fechaActualizacion || fechaCreacion;
+            const etiquetaEstado = currentItem.ultimoEstado === 'Actualizado' ? 'Actualizado por' : 'Creado por';
+            const personaEstado = currentItem.ultimoEstado === 'Actualizado' ? actualizadoPor : creadoPor;
+            const fechaEstado = currentItem.ultimoEstado === 'Actualizado' ? fechaActualizacion : fechaCreacion;
+
+            // Mostrar quién la creó / actualizó y la fecha al abrir el detalle
+            const bloqueAutoriaDetalle = `
+                <div class="meta-item">
+                    <span class="meta-label">${etiquetaEstado}</span>
+                    <span class="meta-value" style="color: var(--uabc-green);">👤 ${personaEstado}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Fecha de Registro / Actualización</span>
+                    <span class="meta-value">📅 ${fechaEstado}</span>
+                </div>
+            `;
 
             detailView.innerHTML = `
                 <!-- Encabezado Corporativo -->
@@ -2198,6 +2461,7 @@
                             <span class="meta-label">ID de Registro</span>
                             <span class="meta-value">#${currentItem.id}</span>
                         </div>
+                        ${bloqueAutoriaDetalle}
                         <div class="repo-row-actions">
                             <button class="btn" onclick="editarAnimacion()">Editar</button>
                             <button class="btn btn-danger" onclick="intentarEliminarAnimacion()">Eliminar</button>
@@ -2259,7 +2523,7 @@
             document.getElementById('action-buttons').style.display = 'none';
             
             document.getElementById('btn-inicio').style.display = 'flex';
-            document.getElementById('nav-actions').style.display = 'flex';
+            document.getElementById('nav-actions').style.display = (modoVistaCatalogo === 'todas') ? 'none' : 'flex';
         }
 
         // 5. Modal Funciones
@@ -2366,6 +2630,7 @@
                 return;
             }
 
+            const sesionAutor = obtenerSesionActual();
             const formData = new FormData();
             if (esEdicion) formData.append('id', id);
             formData.append('nombrePresentacion', nombrePres);
@@ -2373,6 +2638,9 @@
             if(foto) formData.append('foto', foto);
             if(mindFile) formData.append('mindFile', mindFile);
             formData.append('codigoAnimacion', codigo);
+            formData.append('usuarioAutor', sesionAutor ? sesionAutor.usuario : 'admin');
+            formData.append('nombreAutor', sesionAutor ? sesionAutor.nombre : 'Administrador General');
+            formData.append('fechaHora', new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }));
 
             try {
                 const response = await fetch('/api/upload-animacion', {
