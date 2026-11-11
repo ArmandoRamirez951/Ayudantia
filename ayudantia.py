@@ -9,18 +9,15 @@ def sincronizar_github():
         return
     print("[GITHUB] Sincronizando archivos y datos con GitHub Pages...")
     subprocess.run([git_bin, "add", "."], check=False)
-    commit_res = subprocess.run(
+    subprocess.run(
         [git_bin, "commit", "-m", "Actualizacion Sistema de Realidad Virtual"],
         capture_output=True,
         text=True
     )
-    if commit_res.returncode == 0:
-        push_res = subprocess.run([git_bin, "push", "origin", "main"], check=False)
-        if push_res.returncode == 0:
-            print("[GITHUB] ¡Cambios enviados exitosamente a GitHub!")
-    else:
-        subprocess.run([git_bin, "push", "origin", "main"], check=False)
-        print("[GITHUB] Repositorio al día.")
+    subprocess.run([git_bin, "pull", "--rebase", "origin", "main"], check=False)
+    push_res = subprocess.run([git_bin, "push", "origin", "main"], check=False)
+    if push_res.returncode == 0:
+        print("[GITHUB] ¡Cambios enviados exitosamente a GitHub!")
 
 def iniciar_sistema():
     directorio_base = os.path.dirname(os.path.abspath(__file__))
