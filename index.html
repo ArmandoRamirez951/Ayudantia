@@ -439,39 +439,58 @@
 
         .pill-input-group {
             width: 100%;
-            height: 48px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--uabc-blue-dark) 0%, var(--uabc-blue-light) 100%);
-            border: 1.5px solid rgba(245, 179, 22, 0.45);
+            height: 50px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
             display: flex;
             align-items: center;
-            padding: 0 18px;
-            gap: 10px;
-            box-shadow: 0 6px 15px rgba(9, 36, 104, 0.22);
+            padding: 0 14px;
+            gap: 12px;
+            box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .pill-input-group:focus-within {
+            background: #ffffff;
+            border-color: var(--uabc-green);
+            box-shadow: 0 0 0 4px rgba(0, 132, 61, 0.14);
         }
 
         .pill-icon {
-            font-size: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            color: var(--uabc-blue-dark);
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .pill-input-group:focus-within .pill-icon {
+            background: var(--uabc-green);
+            color: #ffffff;
         }
 
         .pill-input-group input {
             flex: 1;
             border: none;
             background: transparent;
-            color: #ffffff;
-            font-size: 0.92rem;
+            color: #0f172a;
+            font-size: 0.94rem;
             font-family: 'Inter', sans-serif;
-            font-weight: 500;
+            font-weight: 600;
             outline: none;
             width: 100%;
         }
 
         .pill-input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.85);
+            color: #94a3b8;
+            font-weight: 400;
         }
 
         .member-options-row {
@@ -605,23 +624,23 @@
                 Usuario o contraseña incorrectos.
             </div>
 
-            <form class="member-form" id="login-form" onsubmit="procesarLoginDesdeInicio(event)">
-                <!-- Píldora Username -->
+            <form class="member-form" id="login-form" onsubmit="procesarLoginDesdeInicio(event)" autocomplete="off">
+                <!-- Campo Usuario -->
                 <div class="pill-input-group">
                     <span class="pill-icon">👤</span>
-                    <input type="text" id="login-user" placeholder="Usuario" required autocomplete="username" oninput="previsualizarFotoLogin(this.value)">
+                    <input type="text" id="login-user" placeholder="Escribe tu usuario..." required autocomplete="off" oninput="previsualizarFotoLogin(this.value)">
                 </div>
 
-                <!-- Píldora Password -->
+                <!-- Campo Contraseña -->
                 <div class="pill-input-group">
                     <span class="pill-icon">🔒</span>
-                    <input type="password" id="login-pass" placeholder="••••••••••••••" required autocomplete="current-password">
+                    <input type="password" id="login-pass" placeholder="Escribe tu contraseña..." required autocomplete="new-password">
                 </div>
 
                 <!-- Opción Recordarme funcional (Sin Olvidaste tu contraseña) -->
                 <div class="member-options-row">
                     <label class="remember-label">
-                        <input type="checkbox" id="remember-me-check" checked> Recordarme
+                        <input type="checkbox" id="remember-me-check"> Recordarme
                     </label>
                 </div>
 
@@ -673,9 +692,14 @@
                         document.getElementById('login-pass').value = data.password || '';
                         document.getElementById('remember-me-check').checked = true;
                         previsualizarFotoLogin(data.usuario);
+                        return;
                     }
                 }
             } catch (e) {}
+            document.getElementById('login-user').value = '';
+            document.getElementById('login-pass').value = '';
+            document.getElementById('remember-me-check').checked = false;
+            previsualizarFotoLogin('');
         }
 
         function abrirModalLogin() {

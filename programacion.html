@@ -1053,13 +1053,35 @@
         }
 
         .form-group input, .form-group textarea, .form-group select {
-            background: var(--bg-subtle);
-            border: 1px solid var(--border-strong);
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
             color: var(--text-main);
-            padding: 10px 14px;
-            border-radius: 8px;
+            padding: 11px 14px;
+            border-radius: 10px;
             font-family: 'Inter', sans-serif;
             font-size: 0.92rem;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .form-group input::placeholder, .form-group textarea::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: var(--uabc-green);
+            box-shadow: 0 0 0 4px rgba(0, 114, 63, 0.14);
+        }
+
+        .form-group input:-webkit-autofill,
+        .form-group input:-webkit-autofill:hover,
+        .form-group input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 40px #ffffff inset !important;
+            -webkit-text-fill-color: var(--text-main) !important;
         }
 
         .form-group textarea {
@@ -1180,11 +1202,11 @@
                     <div id="detail-view"></div>
                 </div>
 
-                <!-- SECCIÓN 2: USUARIOS -->
+                <!-- SECCIÓN 2: USUARIOS (Solo visible para el rol Administrador) -->
                 <div id="roles-view">
                     <div class="roles-grid">
                         <div class="panel">
-                            <h3 class="panel-title">Administradores y Subadministradores</h3>
+                            <h3 class="panel-title">Administradores y Usuarios</h3>
                             <div style="overflow-x: auto;">
                                 <table class="users-table">
                                     <thead>
@@ -1201,7 +1223,7 @@
 
                         <div class="panel" id="create-user-panel">
                             <h3 class="panel-title" id="user-form-title">Registrar Usuario con Foto</h3>
-                            <form id="form-nuevo-usuario" onsubmit="guardarNuevoUsuario(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                            <form id="form-nuevo-usuario" onsubmit="guardarNuevoUsuario(event)" autocomplete="off" style="display: flex; flex-direction: column; gap: 14px;">
                                 <input type="hidden" id="edit-user-id" value="">
 
                                 <div class="form-group">
@@ -1216,30 +1238,30 @@
 
                                 <div class="form-group">
                                     <label>Nombre Completo</label>
-                                    <input type="text" id="new-user-nombre" placeholder="Ej. Dra. Elena Ramírez" required>
+                                    <input type="text" id="new-user-nombre" placeholder="Escribe el nombre completo..." autocomplete="off" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Nombre de Usuario (Login)</label>
-                                    <input type="text" id="new-user-login" placeholder="Ej. eramirez" required>
+                                    <input type="text" id="new-user-login" placeholder="Escribe un nombre de usuario..." autocomplete="off" spellcheck="false" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Contraseña <span id="pass-hint-label" style="font-weight: 400; color: var(--text-muted);"></span></label>
-                                    <input type="password" id="new-user-pass" placeholder="Contraseña de acceso" required>
+                                    <input type="password" id="new-user-pass" placeholder="Escribe una clave de acceso..." autocomplete="new-password" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Rol en el Sistema</label>
                                     <select id="new-user-rol">
-                                        <option value="Subadministrador">🔑 Subadministrador</option>
+                                        <option value="Usuario">👤 Usuario</option>
                                         <option value="Administrador Principal">👑 Administrador Principal</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Cargo Académico / Administrativo</label>
-                                    <input type="text" id="new-user-cargo" placeholder="Ej. Coordinación de Metodología FCA">
+                                    <input type="text" id="new-user-cargo" placeholder="Escribe el cargo o área académica..." autocomplete="off">
                                 </div>
 
                                 <div style="display: flex; gap: 10px;">
@@ -1492,16 +1514,25 @@
                 return;
             }
 
-            const esAdminPrincipal = sesion.rol === 'Administrador Principal';
+            const esAdminPrincipal = sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador';
+            const rolVisual = esAdminPrincipal ? 'Administrador Principal' : 'Usuario';
             const avatarUrl = sesion.fotoPerfil || (esAdminPrincipal ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg');
 
             const sideImg = document.getElementById('sidebar-user-img');
             if (sideImg) sideImg.src = avatarUrl + '?t=' + Date.now();
 
             document.getElementById('sidebar-user-name').textContent = sesion.nombre || sesion.usuario;
-            document.getElementById('sidebar-user-role').textContent = sesion.rol;
+            document.getElementById('sidebar-user-role').textContent = rolVisual;
 
-            cargarTablaUsuarios();
+            // Solo el rol de Administrador tiene el botón de "Usuarios" en el menú lateral
+            const btnUsuariosSidebar = document.getElementById('nav-link-roles');
+            if (btnUsuariosSidebar) {
+                btnUsuariosSidebar.style.display = esAdminPrincipal ? 'flex' : 'none';
+            }
+
+            if (esAdminPrincipal) {
+                cargarTablaUsuarios();
+            }
         }
 
         function previsualizarFotoFormulario(inputEl, previewId) {
@@ -1524,7 +1555,7 @@
             document.getElementById('vista-perfil-img').src = fotoActual;
             document.getElementById('vista-perfil-nombre').textContent = sesion.nombre || '-';
             document.getElementById('vista-perfil-usuario').textContent = '@' + (sesion.usuario || '');
-            document.getElementById('vista-perfil-rol').textContent = sesion.rol || '-';
+            document.getElementById('vista-perfil-rol').textContent = (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador') ? 'Administrador Principal' : 'Usuario';
             document.getElementById('vista-perfil-cargo').textContent = sesion.cargo || 'Facultad de Contaduría y Administración';
 
             // Preparar también los campos del modo edición por si presiona "Editar"
@@ -1636,6 +1667,11 @@
             instruccionesView.style.display = 'none';
 
             if (seccion === 'roles') {
+                const sesion = obtenerSesionActual();
+                const esAdminPrincipal = sesion && (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador');
+                if (!esAdminPrincipal) {
+                    return;
+                }
                 rolesView.style.display = 'block';
                 linkRoles.classList.add('active');
                 headerTitle.textContent = 'Usuarios';
@@ -1691,9 +1727,11 @@
             tbody.innerHTML = '';
 
             lista.forEach(u => {
-                const badgeClass = u.rol === 'Administrador Principal' ? 'badge-role-admin' : 'badge-role-sub';
-                const icon = u.rol === 'Administrador Principal' ? '👑' : '🔑';
-                const fotoSrc = (u.fotoPerfil || (u.rol === 'Administrador Principal' ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
+                const esAdminRow = u.rol === 'Administrador Principal' || u.rol === 'Administrador';
+                const rolEtiqueta = esAdminRow ? 'Administrador Principal' : 'Usuario';
+                const badgeClass = esAdminRow ? 'badge-role-admin' : 'badge-role-sub';
+                const icon = esAdminRow ? '👑' : '👤';
+                const fotoSrc = (u.fotoPerfil || (esAdminRow ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
 
                 let accionesHtml = `<span style="font-size: 0.75rem; color: var(--text-muted);">Solo lectura</span>`;
                 if (esAdminPrincipal) {
@@ -1720,7 +1758,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td><span class="${badgeClass}">${icon} ${u.rol}</span></td>
+                        <td><span class="${badgeClass}">${icon} ${rolEtiqueta}</span></td>
                         <td>${accionesHtml}</td>
                     </tr>
                 `;
@@ -1738,7 +1776,7 @@
             document.getElementById('new-user-pass').value = '';
             document.getElementById('new-user-pass').required = false;
             document.getElementById('pass-hint-label').textContent = "(Opcional al editar)";
-            document.getElementById('new-user-rol').value = u.rol || 'Subadministrador';
+            document.getElementById('new-user-rol').value = (u.rol === 'Administrador Principal' || u.rol === 'Administrador') ? 'Administrador Principal' : 'Usuario';
             document.getElementById('new-user-cargo').value = u.cargo || '';
             document.getElementById('new-user-photo-preview').src = (u.fotoPerfil || 'usuarios/subadmin_default.svg') + '?t=' + Date.now();
             document.getElementById('btn-cancelar-edicion-usr').style.display = 'inline-flex';
