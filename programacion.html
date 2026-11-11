@@ -365,10 +365,10 @@
         .main-container {
             position: relative;
             z-index: 10;
-            width: 94%;
-            max-width: 1280px;
+            width: 97%;
+            max-width: 1560px;
             margin: 0 auto;
-            padding: 28px 0 60px 0;
+            padding: 24px 0 60px 0;
         }
 
         /* Barra de herramientas de Mis Animaciones (Con el botón + Agregar en la esquina) */
@@ -700,11 +700,12 @@
 
         .roles-grid {
             display: grid;
-            grid-template-columns: 1.35fr 1fr;
-            gap: 24px;
+            grid-template-columns: 1.75fr 1fr;
+            gap: 18px;
+            align-items: start;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1120px) {
             .roles-grid {
                 grid-template-columns: 1fr;
             }
@@ -713,22 +714,23 @@
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.86rem;
+            font-size: 0.85rem;
         }
 
         .users-table th {
             text-align: left;
-            padding: 12px 14px;
+            padding: 11px 12px;
             background: var(--bg-subtle);
             color: var(--text-muted);
             font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
         }
 
         .users-table td {
-            padding: 12px 14px;
+            padding: 12px 12px;
             border-bottom: 1px solid var(--border-color);
             vertical-align: middle;
         }
@@ -736,7 +738,8 @@
         .user-row-cell {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            min-width: 170px;
         }
 
         .table-avatar {
@@ -750,22 +753,30 @@
         }
 
         .badge-role-admin {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
             background: #eff6ff;
             color: var(--uabc-blue);
             border: 1px solid #bfdbfe;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 999px;
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 700;
         }
 
         .badge-role-sub {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
             background: #f0fdf4;
             color: var(--uabc-green);
             border: 1px solid #bbf7d0;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 999px;
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 700;
         }
 
@@ -1118,15 +1129,16 @@
         }
 
         .credenciales-box-table {
-            display: flex;
+            display: inline-flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 5px;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 6px 10px;
+            padding: 7px 11px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.78rem;
+            min-width: 215px;
         }
 
         .credenciales-row-table {
@@ -1134,16 +1146,22 @@
             align-items: center;
             gap: 6px;
             color: var(--text-main);
+            white-space: nowrap;
         }
 
         .btn-eye-mini {
             background: #e2e8f0;
-            border: none;
+            border: 1px solid #cbd5e1;
             border-radius: 5px;
-            padding: 2px 6px;
-            font-size: 0.75rem;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
             cursor: pointer;
             margin-left: auto;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             transition: background 0.2s;
         }
 
@@ -1328,8 +1346,7 @@
                                 <div class="form-group">
                                     <label>Rol en el Sistema</label>
                                     <select id="new-user-rol">
-                                        <option value="Usuario">👤 Usuario</option>
-                                        <option value="Administrador Principal">👑 Administrador Principal</option>
+                                        <option value="Usuarios">👤 Usuarios</option>
                                     </select>
                                 </div>
 
@@ -1591,8 +1608,9 @@
                 return;
             }
 
-            const esAdminPrincipal = sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador';
-            const rolVisual = esAdminPrincipal ? 'Administrador Principal' : 'Usuario';
+            // Solo el perfil de Administrador General ('admin') tiene el botón de Usuarios
+            const esAdminPrincipal = sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal';
+            const rolVisual = esAdminPrincipal ? 'Administrador Principal' : 'Usuarios';
             const avatarUrl = sesion.fotoPerfil || (esAdminPrincipal ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg');
 
             const sideImg = document.getElementById('sidebar-user-img');
@@ -1601,7 +1619,7 @@
             document.getElementById('sidebar-user-name').textContent = sesion.nombre || sesion.usuario;
             document.getElementById('sidebar-user-role').textContent = rolVisual;
 
-            // Solo el rol de Administrador tiene el botón de "Usuarios" en el menú lateral
+            // Solo el perfil de Administrador General tiene el botón de "Usuarios" en el menú lateral
             const btnUsuariosSidebar = document.getElementById('nav-link-roles');
             if (btnUsuariosSidebar) {
                 btnUsuariosSidebar.style.display = esAdminPrincipal ? 'flex' : 'none';
@@ -1632,7 +1650,7 @@
             document.getElementById('vista-perfil-img').src = fotoActual;
             document.getElementById('vista-perfil-nombre').textContent = sesion.nombre || '-';
             document.getElementById('vista-perfil-usuario').textContent = '@' + (sesion.usuario || '');
-            document.getElementById('vista-perfil-rol').textContent = (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador') ? 'Administrador Principal' : 'Usuario';
+            document.getElementById('vista-perfil-rol').textContent = (sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal') ? 'Administrador Principal' : 'Usuarios';
             document.getElementById('vista-perfil-cargo').textContent = sesion.cargo || 'Facultad de Contaduría y Administración';
 
             // Preparar también los campos del modo edición por si presiona "Editar"
@@ -1893,8 +1911,8 @@
             tbody.innerHTML = '';
 
             lista.forEach((u, idx) => {
-                const esAdminRow = u.rol === 'Administrador Principal' || u.rol === 'Administrador';
-                const rolEtiqueta = esAdminRow ? 'Administrador Principal' : 'Usuario';
+                const esAdminRow = u.usuario === 'admin' || u.rol === 'Administrador Principal';
+                const rolEtiqueta = esAdminRow ? 'Administrador Principal' : 'Usuarios';
                 const badgeClass = esAdminRow ? 'badge-role-admin' : 'badge-role-sub';
                 const icon = esAdminRow ? '👑' : '👤';
                 const fotoSrc = (u.fotoPerfil || (esAdminRow ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
@@ -1904,11 +1922,11 @@
                 let accionesHtml = `<span style="font-size: 0.75rem; color: var(--text-muted);">Solo lectura</span>`;
                 if (esAdminPrincipal) {
                     const btnBorrar = u.usuario !== 'admin'
-                        ? `<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.74rem;" onclick="eliminarCuentaUsuario('${u.id}')">Eliminar</button>`
+                        ? `<button class="btn btn-danger" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="eliminarCuentaUsuario('${u.id}')">Eliminar</button>`
                         : '';
                     accionesHtml = `
-                        <div style="display: flex; gap: 6px;">
-                            <button class="btn" style="padding: 5px 10px; font-size: 0.74rem;" onclick="cargarUsuarioParaEditar('${u.id}')">✏️ Editar / Foto</button>
+                        <div style="display: flex; gap: 6px; flex-wrap: nowrap; align-items: center;">
+                            <button class="btn" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="cargarUsuarioParaEditar('${u.id}')">✏️ Editar / Foto</button>
                             ${btnBorrar}
                         </div>
                     `;
@@ -1956,7 +1974,12 @@
             document.getElementById('new-user-pass').value = u.password || '';
             document.getElementById('new-user-pass').required = false;
             document.getElementById('pass-hint-label').textContent = "(Puedes verla o cambiarla)";
-            document.getElementById('new-user-rol').value = (u.rol === 'Administrador Principal' || u.rol === 'Administrador') ? 'Administrador Principal' : 'Usuario';
+            const rolSel = document.getElementById('new-user-rol');
+            if (u.usuario === 'admin' || u.rol === 'Administrador Principal') {
+                rolSel.innerHTML = `<option value="Administrador Principal">👑 Administrador Principal</option>`;
+            } else {
+                rolSel.innerHTML = `<option value="Usuarios">👤 Usuarios</option>`;
+            }
             document.getElementById('new-user-cargo').value = u.cargo || '';
             document.getElementById('new-user-photo-preview').src = (u.fotoPerfil || 'usuarios/subadmin_default.svg') + '?t=' + Date.now();
             document.getElementById('btn-cancelar-edicion-usr').style.display = 'inline-flex';
@@ -1971,6 +1994,7 @@
             passInput.type = 'password';
             const btnEye = document.getElementById('btn-eye-new-user');
             if (btnEye) btnEye.textContent = '👁️';
+            document.getElementById('new-user-rol').innerHTML = `<option value="Usuarios">👤 Usuarios</option>`;
             document.getElementById('pass-hint-label').textContent = "";
             document.getElementById('new-user-photo-preview').src = 'usuarios/subadmin_default.svg';
             document.getElementById('btn-cancelar-edicion-usr').style.display = 'none';
