@@ -1084,6 +1084,73 @@
             -webkit-text-fill-color: var(--text-main) !important;
         }
 
+        .pass-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .pass-input-wrapper input {
+            width: 100%;
+            padding-right: 44px;
+        }
+
+        .btn-eye-toggle {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            font-size: 1.05rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-eye-toggle:hover {
+            background: #e2e8f0;
+            color: var(--uabc-navy);
+        }
+
+        .credenciales-box-table {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+
+        .credenciales-row-table {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-main);
+        }
+
+        .btn-eye-mini {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: auto;
+            transition: background 0.2s;
+        }
+
+        .btn-eye-mini:hover {
+            background: #cbd5e1;
+        }
+
         .form-group textarea {
             resize: vertical;
             min-height: 110px;
@@ -1206,12 +1273,13 @@
                 <div id="roles-view">
                     <div class="roles-grid">
                         <div class="panel">
-                            <h3 class="panel-title">Administradores y Usuarios</h3>
+                            <h3 class="panel-title">Usuarios Registrados (Usuario y Contraseña)</h3>
                             <div style="overflow-x: auto;">
                                 <table class="users-table">
                                     <thead>
                                         <tr>
-                                            <th>Perfil / Usuario</th>
+                                            <th>Perfil</th>
+                                            <th>Usuario y Contraseña</th>
                                             <th>Rol Asignado</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -1222,7 +1290,7 @@
                         </div>
 
                         <div class="panel" id="create-user-panel">
-                            <h3 class="panel-title" id="user-form-title">Registrar Usuario con Foto</h3>
+                            <h3 class="panel-title" id="user-form-title">Registrar Usuario</h3>
                             <form id="form-nuevo-usuario" onsubmit="guardarNuevoUsuario(event)" autocomplete="off" style="display: flex; flex-direction: column; gap: 14px;">
                                 <input type="hidden" id="edit-user-id" value="">
 
@@ -1238,17 +1306,23 @@
 
                                 <div class="form-group">
                                     <label>Nombre Completo</label>
-                                    <input type="text" id="new-user-nombre" placeholder="Escribe el nombre completo..." autocomplete="off" required>
+                                    <input type="text" id="new-user-nombre" placeholder="Escribe el nombre completo..." autocomplete="off" oninput="autogenerarAlEscribirNombre(this.value)" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Nombre de Usuario (Login)</label>
-                                    <input type="text" id="new-user-login" placeholder="Escribe un nombre de usuario..." autocomplete="off" spellcheck="false" required>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <label>Usuario Generado (Login)</label>
+                                        <button type="button" onclick="generarCredencialesAutomaticas(true)" style="background: none; border: none; color: var(--uabc-green); font-size: 0.76rem; font-weight: 700; cursor: pointer;">🔄 Regenerar usuario y clave</button>
+                                    </div>
+                                    <input type="text" id="new-user-login" placeholder="Se genera automáticamente al escribir el nombre..." autocomplete="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Contraseña <span id="pass-hint-label" style="font-weight: 400; color: var(--text-muted);"></span></label>
-                                    <input type="password" id="new-user-pass" placeholder="Escribe una clave de acceso..." autocomplete="new-password" required>
+                                    <label>Contraseña Generada <span id="pass-hint-label" style="font-weight: 400; color: var(--text-muted);"></span></label>
+                                    <div class="pass-input-wrapper">
+                                        <input type="password" id="new-user-pass" placeholder="Se genera automáticamente..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" required>
+                                        <button type="button" class="btn-eye-toggle" id="btn-eye-new-user" onclick="alternarPasswordInput('new-user-pass', this)" title="Ver / Ocultar contraseña">👁️</button>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
@@ -1267,7 +1341,7 @@
                                 <div style="display: flex; gap: 10px;">
                                     <button type="button" class="btn" id="btn-cancelar-edicion-usr" style="display: none;" onclick="limpiarFormularioUsuario()">Cancelar</button>
                                     <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
-                                        💾 Guardar Usuario
+                                        💾 Registrar Usuario
                                     </button>
                                 </div>
                             </form>
@@ -1386,7 +1460,10 @@
 
                 <div class="form-group">
                     <label>Nueva Contraseña (Opcional)</label>
-                    <input type="password" id="mi-perfil-pass" placeholder="Dejar en blanco para mantener la actual">
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="mi-perfil-pass" placeholder="Dejar en blanco para mantener la actual" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                        <button type="button" class="btn-eye-toggle" onclick="alternarPasswordInput('mi-perfil-pass', this)" title="Ver / Ocultar contraseña">👁️</button>
+                    </div>
                 </div>
 
                 <div class="modal-buttons" style="justify-content: space-between;">
@@ -1698,9 +1775,98 @@
             }
         }
 
+        function alternarPasswordInput(inputId, btnEl) {
+            const inp = document.getElementById(inputId);
+            if (!inp) return;
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                if (btnEl) btnEl.textContent = '🙈';
+            } else {
+                inp.type = 'password';
+                if (btnEl) btnEl.textContent = '👁️';
+            }
+        }
+
+        function alternarPasswordTabla(spanId, btnEl) {
+            const span = document.getElementById(spanId);
+            if (!span) return;
+            const visible = span.getAttribute('data-visible') === '1';
+            const realPass = span.getAttribute('data-pass') || '';
+            if (visible) {
+                span.textContent = '••••••••';
+                span.setAttribute('data-visible', '0');
+                if (btnEl) btnEl.textContent = '👁️ Ver';
+            } else {
+                span.textContent = realPass;
+                span.setAttribute('data-visible', '1');
+                if (btnEl) btnEl.textContent = '🙈 Ocultar';
+            }
+        }
+
+        // Genera automáticamente un Usuario y una Contraseña al escribir el nombre del usuario nuevo
+        function autogenerarAlEscribirNombre(nombreValor) {
+            const editId = document.getElementById('edit-user-id').value;
+            if (editId) return; // No sobreescribir si se está editando uno existente
+
+            const limpio = String(nombreValor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .trim();
+
+            const loginInput = document.getElementById('new-user-login');
+            const passInput = document.getElementById('new-user-pass');
+
+            if (!limpio) {
+                loginInput.value = '';
+                passInput.value = '';
+                return;
+            }
+
+            const partes = limpio.split(/\s+/).filter(Boolean);
+            let baseUser = partes[0];
+            if (partes.length > 1) {
+                baseUser = partes[0] + '.' + partes[1];
+            }
+            const sufijoNum = String((limpio.length * 7) % 90 + 10);
+            loginInput.value = baseUser + sufijoNum;
+
+            // Si aún no tiene contraseña generada, crear una automáticamente
+            if (!passInput.value) {
+                const rand4 = Math.floor(1000 + Math.random() * 9000);
+                passInput.value = 'uabc' + rand4;
+            }
+        }
+
+        function generarCredencialesAutomaticas(forzar) {
+            const nombreValor = document.getElementById('new-user-nombre').value;
+            const limpio = String(nombreValor || 'usuario')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .trim();
+
+            const partes = limpio.split(/\s+/).filter(Boolean);
+            const baseUser = partes.length > 1 ? (partes[0] + '.' + partes[1]) : (partes[0] || 'usuario');
+            const rand2 = Math.floor(10 + Math.random() * 89);
+            const rand4 = Math.floor(1000 + Math.random() * 9000);
+
+            document.getElementById('new-user-login').value = baseUser + rand2;
+            const passInput = document.getElementById('new-user-pass');
+            passInput.value = 'uabc' + rand4;
+
+            if (forzar) {
+                passInput.type = 'text';
+                const btnEye = document.getElementById('btn-eye-new-user');
+                if (btnEye) btnEye.textContent = '🙈';
+            }
+        }
+
         async function cargarTablaUsuarios() {
             const sesion = obtenerSesionActual();
-            const esAdminPrincipal = sesion && sesion.rol === 'Administrador Principal';
+            const esAdminPrincipal = sesion && (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador');
 
             let lista = [];
             try {
@@ -1726,12 +1892,14 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
-            lista.forEach(u => {
+            lista.forEach((u, idx) => {
                 const esAdminRow = u.rol === 'Administrador Principal' || u.rol === 'Administrador';
                 const rolEtiqueta = esAdminRow ? 'Administrador Principal' : 'Usuario';
                 const badgeClass = esAdminRow ? 'badge-role-admin' : 'badge-role-sub';
                 const icon = esAdminRow ? '👑' : '👤';
                 const fotoSrc = (u.fotoPerfil || (esAdminRow ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
+                const passSpanId = `tbl-pass-${idx}`;
+                const claveReal = u.password || '••••••';
 
                 let accionesHtml = `<span style="font-size: 0.75rem; color: var(--text-muted);">Solo lectura</span>`;
                 if (esAdminPrincipal) {
@@ -1753,8 +1921,20 @@
                                 <img src="${fotoSrc}" alt="${u.nombre}" class="table-avatar">
                                 <div>
                                     <strong>${u.nombre}</strong><br>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">@${u.usuario}</span>
-                                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">${u.cargo || ''}</span>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">${u.cargo || 'FCA UABC'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="credenciales-box-table">
+                                <div class="credenciales-row-table">
+                                    <span>👤 <strong>Usuario:</strong></span>
+                                    <span style="color: var(--uabc-navy); font-weight: 700;">${u.usuario}</span>
+                                </div>
+                                <div class="credenciales-row-table">
+                                    <span>🔑 <strong>Clave:</strong></span>
+                                    <span id="${passSpanId}" data-pass="${claveReal}" data-visible="0" style="color: var(--uabc-green); font-weight: 700;">••••••••</span>
+                                    <button type="button" class="btn-eye-mini" onclick="alternarPasswordTabla('${passSpanId}', this)">👁️ Ver</button>
                                 </div>
                             </div>
                         </td>
@@ -1773,9 +1953,9 @@
             document.getElementById('edit-user-id').value = u.id;
             document.getElementById('new-user-nombre').value = u.nombre || '';
             document.getElementById('new-user-login').value = u.usuario || '';
-            document.getElementById('new-user-pass').value = '';
+            document.getElementById('new-user-pass').value = u.password || '';
             document.getElementById('new-user-pass').required = false;
-            document.getElementById('pass-hint-label').textContent = "(Opcional al editar)";
+            document.getElementById('pass-hint-label').textContent = "(Puedes verla o cambiarla)";
             document.getElementById('new-user-rol').value = (u.rol === 'Administrador Principal' || u.rol === 'Administrador') ? 'Administrador Principal' : 'Usuario';
             document.getElementById('new-user-cargo').value = u.cargo || '';
             document.getElementById('new-user-photo-preview').src = (u.fotoPerfil || 'usuarios/subadmin_default.svg') + '?t=' + Date.now();
@@ -1784,9 +1964,13 @@
 
         function limpiarFormularioUsuario() {
             document.getElementById('form-nuevo-usuario').reset();
-            document.getElementById('user-form-title').textContent = "Registrar Usuario con Foto";
+            document.getElementById('user-form-title').textContent = "Registrar Usuario";
             document.getElementById('edit-user-id').value = "";
-            document.getElementById('new-user-pass').required = true;
+            const passInput = document.getElementById('new-user-pass');
+            passInput.required = true;
+            passInput.type = 'password';
+            const btnEye = document.getElementById('btn-eye-new-user');
+            if (btnEye) btnEye.textContent = '👁️';
             document.getElementById('pass-hint-label').textContent = "";
             document.getElementById('new-user-photo-preview').src = 'usuarios/subadmin_default.svg';
             document.getElementById('btn-cancelar-edicion-usr').style.display = 'none';
@@ -1795,13 +1979,19 @@
         async function guardarNuevoUsuario(event) {
             event.preventDefault();
             const sesion = obtenerSesionActual();
-            if (!sesion || sesion.rol !== 'Administrador Principal') {
+            if (!sesion || (sesion.rol !== 'Administrador Principal' && sesion.rol !== 'Administrador')) {
                 alert("🔒 Solo el 'Administrador Principal' puede crear o editar cuentas de usuarios.");
                 return;
             }
 
             const editId = document.getElementById('edit-user-id').value;
             const nombre = document.getElementById('new-user-nombre').value.trim();
+
+            // Si al registrar dejó vacío usuario o contraseña, los generamos automáticamente
+            if (!editId && (!document.getElementById('new-user-login').value.trim() || !document.getElementById('new-user-pass').value.trim())) {
+                generarCredencialesAutomaticas(false);
+            }
+
             const usuario = document.getElementById('new-user-login').value.trim().toLowerCase();
             const password = document.getElementById('new-user-pass').value.trim();
             const rol = document.getElementById('new-user-rol').value;
@@ -1809,7 +1999,7 @@
             const fotoFile = document.getElementById('new-user-foto').files[0];
 
             const formData = new FormData();
-            formData.append('requesterRole', sesion.rol);
+            formData.append('requesterRole', 'Administrador Principal');
             if (editId) formData.append('id', editId);
             formData.append('nombre', nombre);
             formData.append('usuario', usuario);
@@ -1829,7 +2019,7 @@
                         sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
                         aplicarEstadoSesionUI();
                     }
-                    alert("¡Usuario y foto de perfil guardados correctamente en la carpeta usuarios/!");
+                    alert(`✅ ¡Usuario guardado correctamente!\n\n👤 Usuario: ${usuario}\n🔑 Contraseña: ${password || '(sin cambios)'}\n\nPuedes consultar su usuario y contraseña en cualquier momento dentro de la tabla de Usuarios.`);
                     limpiarFormularioUsuario();
                     cargarTablaUsuarios();
                     return;

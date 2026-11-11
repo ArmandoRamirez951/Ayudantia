@@ -493,6 +493,26 @@
             font-weight: 400;
         }
 
+        .btn-toggle-pass {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 1.05rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-toggle-pass:hover {
+            background: #e2e8f0;
+            color: var(--uabc-blue-dark);
+        }
+
         .member-options-row {
             width: 100%;
             display: flex;
@@ -602,8 +622,9 @@
 
     <!-- ======================================================================
          4. CUADRO DE INICIO DE SESIÓN ("MEMBER LOGIN" ENCIMA DE LA INTERFAZ)
+         - Solo se cierra al presionar el botón "✕"
          ====================================================================== -->
-    <div class="login-modal-backdrop" id="login-modal-overlay" onclick="cerrarModalLoginFondo(event)">
+    <div class="login-modal-backdrop" id="login-modal-overlay">
         <div class="member-login-card">
             <button type="button" class="close-login-overlay" onclick="cerrarModalLogin()" title="Cerrar">✕</button>
 
@@ -628,13 +649,14 @@
                 <!-- Campo Usuario -->
                 <div class="pill-input-group">
                     <span class="pill-icon">👤</span>
-                    <input type="text" id="login-user" placeholder="Escribe tu usuario..." required autocomplete="off" oninput="previsualizarFotoLogin(this.value)">
+                    <input type="text" id="login-user" placeholder="Escribe tu usuario..." required autocomplete="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');" oninput="previsualizarFotoLogin(this.value)">
                 </div>
 
-                <!-- Campo Contraseña -->
+                <!-- Campo Contraseña con opción para ver/ocultar -->
                 <div class="pill-input-group">
                     <span class="pill-icon">🔒</span>
-                    <input type="password" id="login-pass" placeholder="Escribe tu contraseña..." required autocomplete="new-password">
+                    <input type="password" id="login-pass" placeholder="Escribe tu contraseña..." required autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                    <button type="button" class="btn-toggle-pass" id="btn-toggle-login-pass" onclick="alternarVisibilidadLoginPass()" title="Mostrar / Ocultar contraseña">👁️</button>
                 </div>
 
                 <!-- Opción Recordarme funcional (Sin Olvidaste tu contraseña) -->
@@ -704,20 +726,30 @@
 
         function abrirModalLogin() {
             document.getElementById('auth-error-msg').style.display = 'none';
+            const userInp = document.getElementById('login-user');
+            const passInp = document.getElementById('login-pass');
+            const btnEye = document.getElementById('btn-toggle-login-pass');
+            userInp.setAttribute('readonly', 'readonly');
+            passInp.setAttribute('readonly', 'readonly');
+            passInp.type = 'password';
+            if (btnEye) btnEye.textContent = '👁️';
             cargarCredencialesRecordadas();
             document.getElementById('login-modal-overlay').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('login-user').focus();
-            }, 80);
         }
 
         function cerrarModalLogin() {
             document.getElementById('login-modal-overlay').style.display = 'none';
         }
 
-        function cerrarModalLoginFondo(event) {
-            if (event.target.id === 'login-modal-overlay') {
-                cerrarModalLogin();
+        function alternarVisibilidadLoginPass() {
+            const passInp = document.getElementById('login-pass');
+            const btnEye = document.getElementById('btn-toggle-login-pass');
+            if (passInp.type === 'password') {
+                passInp.type = 'text';
+                btnEye.textContent = '🙈';
+            } else {
+                passInp.type = 'password';
+                btnEye.textContent = '👁️';
             }
         }
 
