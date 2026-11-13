@@ -1245,15 +1245,22 @@
 </head>
 <body>
 
-    <!-- Verificación inmediata de seguridad: solo se puede entrar iniciando sesión desde index.html -->
+    <!-- Verificación inmediata de seguridad: valida estructura de la sesión al entrar -->
     <script>
         (function verificarAccesoExclusivo() {
             try {
                 const raw = sessionStorage.getItem('ayudantia_ar_session_2026');
                 if (!raw) {
                     window.location.replace('index.html?login=1');
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object' || !parsed.id || !parsed.usuario || !parsed.rol) {
+                    sessionStorage.removeItem('ayudantia_ar_session_2026');
+                    window.location.replace('index.html?login=1');
                 }
             } catch (e) {
+                sessionStorage.removeItem('ayudantia_ar_session_2026');
                 window.location.replace('index.html?login=1');
             }
         })();
@@ -1642,13 +1649,92 @@
             });
         }
 
+        // Sanitizador HTML contra inyección XSS y rotura de atributos con comillas
+        function escaparHTML(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function obtenerSesionActual() {
             try {
                 const raw = sessionStorage.getItem(AUTH_SESSION_KEY);
-                return raw ? JSON.parse(raw) : null;
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || !parsed.id || !parsed.usuario || !parsed.rol) return null;
+                return parsed;
             } catch (e) {
                 return null;
             }
+        }
+
+        function construirHeadersAuth(extraHeaders = {}) {
+            const sesion = obtenerSesionActual() || {};
+            return Object.assign({
+                'x-session-token': sesion.sessionToken || '',
+                'x-auth-id': sesion.id || '',
+                'x-auth-user': sesion.usuario || ''
+            }, extraHeaders);
+        }
+
+        // Verifica contra el servidor (o usuarios.json en GitHub Pages) que el usuario y rol en sessionStorage sean legítimos
+        async function verificarIntegridadSesion() {
+            const sesion = obtenerSesionActual();
+            if (!sesion) return;
+
+            try {
+                const res = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: construirHeadersAuth({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({
+                        sessionToken: sesion.sessionToken || '',
+                        requesterId: sesion.id,
+                        requesterUser: sesion.usuario
+                    })
+                });
+                if (res.status === 401) {
+                    salidaAutorizada = true;
+                    sessionStorage.removeItem(AUTH_SESSION_KEY);
+                    window.location.replace('index.html?login=1');
+                    return;
+                }
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.ok && data.usuario) {
+                        data.usuario.sessionToken = sesion.sessionToken || '';
+                        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
+                    }
+                    return;
+                }
+            } catch (e) {}
+
+            // Respaldo de verificación contra usuarios.json si se abre en GitHub Pages
+            try {
+                const r2 = await fetch('usuarios.json?t=' + Date.now());
+                if (r2.ok) {
+                    const d2 = await r2.json();
+                    const realUser = (d2.usuarios || []).find(
+                        u => u.id === sesion.id && u.usuario.toLowerCase() === String(sesion.usuario).toLowerCase() && u.activo !== false
+                    );
+                    if (!realUser) {
+                        salidaAutorizada = true;
+                        sessionStorage.removeItem(AUTH_SESSION_KEY);
+                        window.location.replace('index.html?login=1');
+                        return;
+                    }
+                    const rolAutoritativo = (realUser.usuario === 'admin' || realUser.rol === 'Administrador Principal')
+                        ? 'Administrador Principal'
+                        : 'Usuarios';
+                    if (sesion.rol !== rolAutoritativo) {
+                        sesion.rol = rolAutoritativo;
+                        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sesion));
+                        aplicarEstadoSesionUI();
+                    }
+                }
+            } catch (e) {}
         }
 
         // Botón Salir con confirmación
@@ -1712,11 +1798,13 @@
             const sesion = obtenerSesionActual();
             if (!sesion) return;
 
-            const fotoActual = (sesion.fotoPerfil || 'usuarios/admin_default.svg') + '?t=' + Date.now();
+            const esAdminPrincipal = sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal';
+            const fotoPorDefecto = esAdminPrincipal ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg';
+            const fotoActual = (sesion.fotoPerfil || fotoPorDefecto) + '?t=' + Date.now();
             document.getElementById('vista-perfil-img').src = fotoActual;
             document.getElementById('vista-perfil-nombre').textContent = sesion.nombre || '-';
             document.getElementById('vista-perfil-usuario').textContent = '@' + (sesion.usuario || '');
-            document.getElementById('vista-perfil-rol').textContent = (sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal') ? 'Administrador Principal' : 'Usuarios';
+            document.getElementById('vista-perfil-rol').textContent = esAdminPrincipal ? 'Administrador Principal' : 'Usuarios';
             document.getElementById('vista-perfil-cargo').textContent = sesion.cargo || 'Facultad de Contaduría y Administración';
 
             // Preparar también los campos del modo edición por si presiona "Editar"
@@ -1799,11 +1887,13 @@
             try {
                 const res = await fetch('/api/users/profile', {
                     method: 'POST',
+                    headers: construirHeadersAuth(),
                     body: formData
                 });
                 if (res.ok) {
                     const data = await res.json();
                     if (data.ok && data.usuario) {
+                        data.usuario.sessionToken = sesion.sessionToken || '';
                         sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
                         aplicarEstadoSesionUI();
                         abrirModalMiPerfil();
@@ -1991,11 +2081,14 @@
 
         async function cargarTablaUsuarios() {
             const sesion = obtenerSesionActual();
-            const esAdminPrincipal = sesion && (sesion.rol === 'Administrador Principal' || sesion.rol === 'Administrador');
+            const esAdminPrincipal = sesion && (sesion.usuario === 'admin' || sesion.rol === 'Administrador Principal');
+            if (!esAdminPrincipal) return;
 
             let lista = [];
             try {
-                const res = await fetch('/api/users');
+                const res = await fetch('/api/users', {
+                    headers: construirHeadersAuth()
+                });
                 if (res.ok) {
                     const data = await res.json();
                     if (data.usuarios) lista = data.usuarios;
@@ -2022,18 +2115,22 @@
                 const rolEtiqueta = esAdminRow ? 'Administrador Principal' : 'Usuarios';
                 const badgeClass = esAdminRow ? 'badge-role-admin' : 'badge-role-sub';
                 const icon = esAdminRow ? '👑' : '👤';
-                const fotoSrc = (u.fotoPerfil || (esAdminRow ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now();
+                const fotoSrc = escaparHTML((u.fotoPerfil || (esAdminRow ? 'usuarios/admin_default.svg' : 'usuarios/subadmin_default.svg')) + '?t=' + Date.now());
                 const passSpanId = `tbl-pass-${idx}`;
-                const claveReal = u.password || '••••••';
+                const claveRealSafe = escaparHTML(u.password || '••••••');
+                const nombreSafe = escaparHTML(u.nombre || '');
+                const usuarioSafe = escaparHTML(u.usuario || '');
+                const cargoSafe = escaparHTML(u.cargo || 'FCA UABC');
+                const idSafe = escaparHTML(u.id || '');
 
                 let accionesHtml = `<span style="font-size: 0.75rem; color: var(--text-muted);">Solo lectura</span>`;
                 if (esAdminPrincipal) {
                     const btnBorrar = u.usuario !== 'admin'
-                        ? `<button class="btn btn-danger" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="eliminarCuentaUsuario('${u.id}')">Eliminar</button>`
+                        ? `<button class="btn btn-danger" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="eliminarCuentaUsuario('${idSafe}')">Eliminar</button>`
                         : '';
                     accionesHtml = `
                         <div style="display: flex; gap: 6px; flex-wrap: nowrap; align-items: center;">
-                            <button class="btn" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="cargarUsuarioParaEditar('${u.id}')">✏️ Editar / Foto</button>
+                            <button class="btn" style="padding: 6px 11px; font-size: 0.75rem; white-space: nowrap;" onclick="cargarUsuarioParaEditar('${idSafe}')">✏️ Editar / Foto</button>
                             ${btnBorrar}
                         </div>
                     `;
@@ -2043,10 +2140,10 @@
                     <tr>
                         <td>
                             <div class="user-row-cell">
-                                <img src="${fotoSrc}" alt="${u.nombre}" class="table-avatar">
+                                <img src="${fotoSrc}" alt="${nombreSafe}" class="table-avatar">
                                 <div>
-                                    <strong>${u.nombre}</strong><br>
-                                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">${u.cargo || 'FCA UABC'}</span>
+                                    <strong>${nombreSafe}</strong><br>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">${cargoSafe}</span>
                                 </div>
                             </div>
                         </td>
@@ -2054,11 +2151,11 @@
                             <div class="credenciales-box-table">
                                 <div class="credenciales-row-table">
                                     <span>👤 <strong>Usuario:</strong></span>
-                                    <span style="color: var(--uabc-navy); font-weight: 700;">${u.usuario}</span>
+                                    <span style="color: var(--uabc-navy); font-weight: 700;">${usuarioSafe}</span>
                                 </div>
                                 <div class="credenciales-row-table">
                                     <span>🔑 <strong>Clave:</strong></span>
-                                    <span id="${passSpanId}" data-pass="${claveReal}" data-visible="0" style="color: var(--uabc-green); font-weight: 700;">••••••••</span>
+                                    <span id="${passSpanId}" data-pass="${claveRealSafe}" data-visible="0" style="color: var(--uabc-green); font-weight: 700;">••••••••</span>
                                     <button type="button" class="btn-eye-mini" onclick="alternarPasswordTabla('${passSpanId}', this)">👁️ Ver</button>
                                 </div>
                             </div>
@@ -2166,11 +2263,13 @@
             try {
                 const res = await fetch('/api/users/save', {
                     method: 'POST',
+                    headers: construirHeadersAuth(),
                     body: formData
                 });
                 const data = await res.json();
                 if (res.ok && data.ok) {
                     if (editId && editId === sesion.id && data.usuario) {
+                        data.usuario.sessionToken = sesion.sessionToken || '';
                         sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data.usuario));
                         aplicarEstadoSesionUI();
                     }
@@ -2188,17 +2287,20 @@
 
         async function eliminarCuentaUsuario(id) {
             const sesion = obtenerSesionActual();
-            if (!sesion || sesion.rol !== 'Administrador Principal') return;
+            if (!sesion || (sesion.usuario !== 'admin' && sesion.rol !== 'Administrador Principal')) return;
             if (!confirm("¿Estás seguro de eliminar esta cuenta de usuario?")) return;
 
             try {
                 const res = await fetch('/api/users/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requesterRole: sesion.rol, id })
+                    headers: construirHeadersAuth({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ id })
                 });
                 if (res.ok) {
                     cargarTablaUsuarios();
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    alert(errData.mensaje || "No se pudo eliminar el usuario.");
                 }
             } catch (e) {}
         }
@@ -2385,25 +2487,32 @@
                 const accionEtiqueta = item.ultimoEstado === 'Actualizado' ? 'Actualizado por' : 'Creado por';
                 const autorResponsable = item.ultimoEstado === 'Actualizado' ? actualizadoPor : creadoPor;
 
+                const diapSafe = escaparHTML(item.nombreDiapositiva || '');
+                const presSafe = escaparHTML(item.nombrePresentacion || '');
+                const fotoSafe = escaparHTML(item.foto || '');
+                const idSafe = escaparHTML(item.id || '');
+                const autorSafe = escaparHTML(autorResponsable);
+                const fechaSafe = escaparHTML(fechaMostrada);
+
                 const infoAutoriaCard = modoVistaCatalogo === 'todas'
                     ? `<div class="card-audit-chip">
-                           <span>👤 <strong>${accionEtiqueta}:</strong> ${autorResponsable}</span>
-                           <span>📅 <strong>Fecha:</strong> ${fechaMostrada}</span>
+                           <span>👤 <strong>${accionEtiqueta}:</strong> ${autorSafe}</span>
+                           <span>📅 <strong>Fecha:</strong> ${fechaSafe}</span>
                        </div>`
                     : '';
 
                 grid.innerHTML += `
                 <div class="anim-card"
-                     data-diapositiva="${item.nombreDiapositiva || ''}"
-                     data-presentacion="${item.nombrePresentacion || ''}"
-                     data-autor="${creadoPor} ${actualizadoPor}"
-                     onclick="abrirDetalle('${item.id}')">
+                     data-diapositiva="${diapSafe}"
+                     data-presentacion="${presSafe}"
+                     data-autor="${escaparHTML(creadoPor + ' ' + actualizadoPor)}"
+                     onclick="abrirDetalle('${idSafe}')">
                     <div class="card-img-container">
-                        <img src="${item.foto}" alt="${item.nombreDiapositiva}">
+                        <img src="${fotoSafe}" alt="${diapSafe}">
                     </div>
                     <div class="card-body">
-                        <div class="card-subtitle">${item.nombrePresentacion}</div>
-                        <h3 class="card-title">${item.nombreDiapositiva}</h3>
+                        <div class="card-subtitle">${presSafe}</div>
+                        <h3 class="card-title">${diapSafe}</h3>
                         ${infoAutoriaCard}
                     </div>
                 </div>`;
@@ -2430,8 +2539,13 @@
             const actualizadoPor = currentItem.actualizadoPor || creadoPor;
             const fechaActualizacion = currentItem.fechaActualizacion || fechaCreacion;
             const etiquetaEstado = currentItem.ultimoEstado === 'Actualizado' ? 'Actualizado por' : 'Creado por';
-            const personaEstado = currentItem.ultimoEstado === 'Actualizado' ? actualizadoPor : creadoPor;
-            const fechaEstado = currentItem.ultimoEstado === 'Actualizado' ? fechaActualizacion : fechaCreacion;
+            const personaEstado = escaparHTML(currentItem.ultimoEstado === 'Actualizado' ? actualizadoPor : creadoPor);
+            const fechaEstado = escaparHTML(currentItem.ultimoEstado === 'Actualizado' ? fechaActualizacion : fechaCreacion);
+            const presSafe = escaparHTML(currentItem.nombrePresentacion || '');
+            const diapSafe = escaparHTML(currentItem.nombreDiapositiva || '');
+            const idSafe = escaparHTML(currentItem.id || '');
+            const fotoSafe = escaparHTML(currentItem.foto || '');
+            const mindSafe = escaparHTML(currentItem.mindFile || '');
 
             // Mostrar quién la creó / actualizó y la fecha al abrir el detalle
             const bloqueAutoriaDetalle = `
@@ -2451,15 +2565,15 @@
                     <div class="repo-meta-row">
                         <div class="meta-item">
                             <span class="meta-label">Presentación Asignada</span>
-                            <span class="meta-value">${currentItem.nombrePresentacion}</span>
+                            <span class="meta-value">${presSafe}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Nombre de la Diapositiva</span>
-                            <span class="meta-value">${currentItem.nombreDiapositiva}</span>
+                            <span class="meta-value">${diapSafe}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">ID de Registro</span>
-                            <span class="meta-value">#${currentItem.id}</span>
+                            <span class="meta-value">#${idSafe}</span>
                         </div>
                         ${bloqueAutoriaDetalle}
                         <div class="repo-row-actions">
@@ -2477,12 +2591,12 @@
                         
                         <div class="file-info-group">
                             <span class="meta-label">Imagen de Activación (.PNG / .JPG)</span>
-                            <img src="${currentItem.foto}" alt="${currentItem.nombreDiapositiva}" class="slide-preview" style="margin-bottom: 0;">
+                            <img src="${fotoSafe}" alt="${diapSafe}" class="slide-preview" style="margin-bottom: 0;">
                         </div>
                         
                         <div class="file-info-group">
                             <span class="meta-label">Patrón de Reconocimiento (.MIND)</span>
-                            <div class="file-badge">${currentItem.mindFile}</div>
+                            <div class="file-badge">${mindSafe}</div>
                         </div>
                     </div>
 
@@ -2645,6 +2759,7 @@
             try {
                 const response = await fetch('/api/upload-animacion', {
                     method: 'POST',
+                    headers: construirHeadersAuth(),
                     body: formData
                 });
 
@@ -2668,7 +2783,7 @@
             try {
                 const response = await fetch('/api/delete-animacion', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: construirHeadersAuth({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ id: currentItem.id })
                 });
 
@@ -2685,8 +2800,9 @@
         }
 
         // Iniciar
-        window.onload = () => {
+        window.onload = async () => {
             inicializarGuardiaDeNavegacion();
+            await verificarIntegridadSesion();
             aplicarEstadoSesionUI();
             cargarDatos();
         };
