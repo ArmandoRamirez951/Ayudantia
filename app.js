@@ -125,10 +125,11 @@ document.addEventListener("DOMContentLoaded", () => {
             // 1. Primera diapositiva en #ar-content (targetIndex: 0)
             const primeraDiapo = lista[0];
             if (arContent && primeraDiapo.codigoAnimacion) {
+                arContent.setAttribute('visible', 'false');
                 arContent.innerHTML = primeraDiapo.codigoAnimacion;
             }
 
-            // 2. Diapositivas adicionales (targetIndex: 1, 2, ...)
+            // 2. Diapositivas adicionales (targetIndex: 1, 2, 3, 4, ...)
             for (let i = 1; i < lista.length; i++) {
                 const diapoExtra = lista[i];
                 let extraEntity = document.getElementById(`ar-content-${i}`);
@@ -136,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     extraEntity = document.createElement('a-entity');
                     extraEntity.setAttribute('id', `ar-content-${i}`);
                     extraEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
+                    extraEntity.setAttribute('visible', 'false');
                     sceneEl.appendChild(extraEntity);
                 }
                 extraEntity.innerHTML = diapoExtra.codigoAnimacion;
@@ -176,21 +178,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     requestAnimationFrame(animarColoresTexto);
 
-    // Cuando cualquier diapositiva es detectada por la cámara
+    // Cuando cualquier diapositiva es detectada por la cámara (cambia en tiempo real sin recargar la página)
     sceneEl.addEventListener("targetFound", event => {
         console.log("¡Diapositiva detectada!");
         if (scannerText) scannerText.style.display = 'none';
-        if (event && event.target) {
-            event.target.setAttribute('visible', 'true');
-        } else if (arContent) {
-            arContent.setAttribute('visible', 'true');
+        // Ocultar cualquier otra diapositiva previa y mostrar únicamente la diapositiva enfocada actualmente
+        const todosLosTargets = sceneEl.querySelectorAll('[mindar-image-target]');
+        todosLosTargets.forEach(el => {
+            if (event && event.target && el === event.target) {
+                el.setAttribute('visible', 'true');
+            } else {
+                el.setAttribute('visible', 'false');
+            }
+        });
+        if (!event || !event.target) {
+            if (arContent) arContent.setAttribute('visible', 'true');
         }
         if (finishedMsg) finishedMsg.style.display = 'none';
     });
 
-    // Cuando la imagen se pierde de vista
+    // Cuando la diapositiva se pierde de vista (por ejemplo, al cambiar a la siguiente diapositiva)
     sceneEl.addEventListener("targetLost", event => {
         console.log("Se perdió la diapositiva de vista.");
+        if (event && event.target) {
+            event.target.setAttribute('visible', 'false');
+        }
         if (scannerText) scannerText.style.display = 'block';
         if (finishedMsg) finishedMsg.style.display = 'none';
     });
