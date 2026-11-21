@@ -3038,7 +3038,11 @@
 
                 if(response.ok) {
                     salidaAutorizada = true;
-                    alert("¡Diapositiva guardada y archivo .mind creado correctamente!");
+                    if (foto) {
+                        alert("¡Diapositiva guardada y archivo .mind creado correctamente!");
+                    } else {
+                        alert("¡Datos actualizados correctamente!");
+                    }
                     window.location.reload();
                 } else {
                     alert("Error en el servidor local.");
