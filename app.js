@@ -117,6 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const primeraDiapo = lista[0];
         if (arContent && primeraDiapo && primeraDiapo.codigoAnimacion) {
             arContent.innerHTML = primeraDiapo.codigoAnimacion;
+            cambiarVisibilidadHijosTarget(arContent, false);
         }
 
         // 2. Diapositivas adicionales (targetIndex: 1, 2, 3, ...)
@@ -130,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 sceneEl.appendChild(extraEntity);
             }
             extraEntity.innerHTML = diapoExtra.codigoAnimacion;
+            cambiarVisibilidadHijosTarget(extraEntity, false);
         }
 
         // 3. Limpiar entidades sobrantes si se eliminó alguna diapositiva
@@ -311,65 +313,133 @@ document.addEventListener("DOMContentLoaded", () => {
         return sceneEl && sceneEl.camera ? sceneEl.camera : null;
     }
 
-    // Verifica si la diapositiva detectada está alineada dentro del cuadro guía (.scanner-frame)
-    function estaTargetEnfocadoDentroDelCuadro(targetEl) {
-        if (!targetEl || !scannerFrame) return true;
+    // Verifica que la cámara enfoque más o menos exacto la diapositiva dentro del cuadro guía (.scanner-frame)
+    // Evalúa: 1) Centrado en el recuadro, 2) Tamaño/distancia acorde al recuadro, y 3) Orientación frontal.
+    function evaluarEnfoqueExactoEnCuadro(targetEl) {
+        if (!targetEl || !scannerFrame) {
+            return { enfocado: false, motivo: 'Encuadra la diapositiva aquí' };
+        }
         const rect = scannerFrame.getBoundingClientRect();
-        if (!rect || rect.width <= 0 || rect.height <= 0) return true;
+        if (!rect || rect.width <= 0 || rect.height <= 0) {
+            return { enfocado: false, motivo: 'Encuadra la diapositiva aquí' };
+        }
 
         try {
             const obj3D = targetEl.object3D;
             const threeCamera = obtenerThreeCameraActiva();
             if (!obj3D || !obj3D.matrix || !threeCamera || typeof AFRAME === 'undefined') {
-                return true;
+                return { enfocado: false, motivo: 'Encuadra la diapositiva aquí' };
             }
 
             const elms = obj3D.matrix.elements;
-            // En MindAR, invisibleMatrix tiene todos sus elementos en 0 (elms[15] === 0).
-            // Además, targetFound se emite justo un instante antes de asignar obj3D.matrix = t.
+            // Si la matriz aún es invisibleMatrix (ceros), NO mostrar la animación hasta tener coordenadas reales
             if (!elms || elms[15] === 0 || (elms[12] === 0 && elms[13] === 0 && elms[14] === 0)) {
-                return true;
+                return { enfocado: false, motivo: 'Enfocando diapositiva...' };
             }
 
-            // En MindAR A-Frame, obj3D.matrix ya está en coordenadas de la cámara (post-multiplicada por postMatrix en el centro del marcador)
-            const posCamSpace = new AFRAME.THREE.Vector3(elms[12], elms[13], elms[14]);
-            const ndc = posCamSpace.clone().applyMatrix4(threeCamera.projectionMatrix);
+            // 1. Proyectar el centro (0,0,0) y los bordes (-0.5..+0.5) de la diapositiva a coordenadas de pantalla
+            const THREE_LIB = AFRAME.THREE;
+            const mat = obj3D.matrix;
+            const proj = threeCamera.projectionMatrix;
 
-            // Si la proyección devuelve NaN o fuera de rango válido, permitir visualización
-            if (isNaN(ndc.x) || isNaN(ndc.y)) {
-                return true;
+            const proyectarPuntoLocal = (lx, ly, lz) => {
+                const v = new THREE_LIB.Vector3(lx, ly, lz).applyMatrix4(mat).applyMatrix4(proj);
+                return {
+                    x: (v.x * 0.5 + 0.5) * window.innerWidth,
+                    y: (-v.y * 0.5 + 0.5) * window.innerHeight,
+                    z: v.z
+                };
+            };
+
+            const centro = proyectarPuntoLocal(0, 0, 0);
+            if (isNaN(centro.x) || isNaN(centro.y) || centro.z > 1.0) {
+                return { enfocado: false, motivo: 'Encuadra la diapositiva aquí' };
             }
 
-            const screenX = (ndc.x * 0.5 + 0.5) * window.innerWidth;
-            const screenY = (-ndc.y * 0.5 + 0.5) * window.innerHeight;
+            const bordeIzq = proyectarPuntoLocal(-0.5, 0, 0);
+            const bordeDer = proyectarPuntoLocal(0.5, 0, 0);
+            const bordeArr = proyectarPuntoLocal(0, 0.3, 0);
+            const bordeAba = proyectarPuntoLocal(0, -0.3, 0);
 
-            // Margen amplio y cómodo alrededor del cuadro guía (38% de tolerancia) para que al encuadrar la diapositiva
-            // dentro o sobre el marco se active de inmediato sin parpadeos por movimiento de la mano.
-            const padX = rect.width * 0.38;
-            const padY = rect.height * 0.38;
+            const anchoDiapoPx = Math.hypot(bordeDer.x - bordeIzq.x, bordeDer.y - bordeIzq.y);
+            const altoDiapoPx = Math.hypot(bordeArr.x - bordeAba.x, bordeArr.y - bordeAba.y);
 
-            const dentroHorizontal = screenX >= (rect.left - padX) && screenX <= (rect.right + padX);
-            const dentroVertical = screenY >= (rect.top - padY) && screenY <= (rect.bottom + padY);
+            const frameCenterX = rect.left + rect.width * 0.5;
+            const frameCenterY = rect.top + rect.height * 0.5;
 
-            return dentroHorizontal && dentroVertical;
+            // Condición A: El centro de la diapositiva debe estar bien alineado con el centro del recuadro guía
+            // (máximo ±24% de desviación respecto al ancho/alto del recuadro)
+            const desvX = Math.abs(centro.x - frameCenterX);
+            const desvY = Math.abs(centro.y - frameCenterY);
+            const maxDesvX = rect.width * 0.24;
+            const maxDesvY = rect.height * 0.24;
+
+            if (desvX > maxDesvX || desvY > maxDesvY) {
+                return {
+                    enfocado: false,
+                    motivo: '🎯 Centra bien la diapositiva dentro del recuadro'
+                };
+            }
+
+            // Condición B: La diapositiva debe tener un tamaño en pantalla cercano al del recuadro guía
+            // (entre 48% y 132% del ancho del recuadro para que no salga si está muy lejos o demasiado cerca)
+            const minAncho = rect.width * 0.48;
+            const maxAncho = rect.width * 1.32;
+
+            if (anchoDiapoPx < minAncho || altoDiapoPx < rect.height * 0.35) {
+                return {
+                    enfocado: false,
+                    motivo: '🔍 Acerca la cámara o usa el Zoom para llenar el recuadro'
+                };
+            }
+
+            if (anchoDiapoPx > maxAncho) {
+                return {
+                    enfocado: false,
+                    motivo: '📏 Aleja un poco la cámara para encuadrar la diapositiva'
+                };
+            }
+
+            // Condición C: Orientación frontal (evitar que salga si la cámara mira la diapositiva muy de lado)
+            const nx = elms[8];
+            const ny = elms[9];
+            const nz = elms[10];
+            const normLen = Math.hypot(nx, ny, nz);
+            if (normLen > 0.0001) {
+                const cosFrontal = Math.abs(nz) / normLen;
+                if (cosFrontal < 0.58) {
+                    return {
+                        enfocado: false,
+                        motivo: '📐 Enfoca la diapositiva más de frente'
+                    };
+                }
+            }
+
+            return {
+                enfocado: true,
+                motivo: '✓ Diapositiva enfocada • Animación activa'
+            };
         } catch (e) {
-            return true;
+            return { enfocado: false, motivo: 'Encuadra la diapositiva aquí' };
         }
     }
 
     function actualizarVisibilidadPorEnfoqueEnCuadro() {
-        if (!targetDetectadoActual) return;
-
-        const enfocadoEnCuadro = estaTargetEnfocadoDentroDelCuadro(targetDetectadoActual);
         const todosLosTargets = sceneEl.querySelectorAll('[mindar-image-target]');
+        if (!targetDetectadoActual) {
+            todosLosTargets.forEach(el => cambiarVisibilidadHijosTarget(el, false));
+            return;
+        }
 
-        if (enfocadoEnCuadro) {
+        const evalRes = evaluarEnfoqueExactoEnCuadro(targetDetectadoActual);
+
+        if (evalRes.enfocado) {
             todosLosTargets.forEach(el => {
                 cambiarVisibilidadHijosTarget(el, el === targetDetectadoActual);
             });
             if (scannerText) scannerText.style.display = 'none';
             if (scannerFrame) scannerFrame.classList.add('frame-locked');
-            if (scannerFocusBadge) scannerFocusBadge.textContent = '✓ Diapositiva enfocada • Animación activa';
+            if (scannerFocusBadge) scannerFocusBadge.textContent = evalRes.motivo;
             animacionMostradaEnCuadro = true;
         } else {
             todosLosTargets.forEach(el => {
@@ -379,11 +449,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (scannerText) {
                 scannerText.style.display = 'block';
                 scannerText.innerHTML = `
-                    <h2>🎯 Centra la Diapositiva</h2>
-                    <p>Ubica la diapositiva dentro del recuadro para activar la animación</p>
+                    <h2>🎯 Enfoca la Diapositiva</h2>
+                    <p>${evalRes.motivo}</p>
                 `;
             }
-            if (scannerFocusBadge) scannerFocusBadge.textContent = 'Centra la diapositiva dentro del marco';
+            if (scannerFocusBadge) scannerFocusBadge.textContent = evalRes.motivo;
             animacionMostradaEnCuadro = false;
         }
     }

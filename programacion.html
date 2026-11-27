@@ -1960,13 +1960,90 @@
             </div>
 
             <div class="form-group">
-                <label>Código de animación (A-Frame)</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;">
+                    <label style="margin: 0;">Código de animación (A-Frame)</label>
+                    <button type="button" class="btn" id="btn-editar-crear-otra-animacion" onclick="abrirSelectorNuevaAnimacionEdicion()" style="background-color: var(--uabc-blue); color: #ffffff; border: 1px solid var(--uabc-blue); padding: 7px 15px; font-size: 0.84rem; font-weight: 700;">
+                        🔄 Crear otra animación
+                    </button>
+                </div>
                 <textarea id="input-codigo" placeholder="<a-entity>...</a-entity>"></textarea>
             </div>
 
             <div class="modal-buttons">
                 <button class="btn" onclick="cerrarModal()">Cancelar</button>
                 <button class="btn btn-primary" onclick="guardarAnimacion()">Guardar Animación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INTERFAZ PARA CREAR Y SELECCIONAR OTRA ANIMACIÓN DESDE LA VENTANA DE EDITAR -->
+    <div class="modal-overlay" id="modal-selector-animacion-edicion" style="z-index: 2650;">
+        <div class="modal-content" style="width: 95%; max-width: 1100px; min-height: 76vh; max-height: 94vh; padding: 32px 38px; border-top: 6px solid var(--uabc-blue);">
+            <button type="button" class="btn-close-modal" onclick="cancelarSelectorNuevaAnimacionEdicion()" title="Cancelar y volver a Editar">X</button>
+            <h2 style="color: var(--uabc-blue); margin-bottom: 2px;">Crear y Seleccionar Nueva Animación 3D</h2>
+            <p style="margin: 0 0 8px 0; text-align: center; font-size: 0.88rem; color: var(--text-secondary);">
+                Visualiza la nueva animación generada para esta diapositiva. Puedes generar otra variante, seleccionarla para reemplazar el código actual, o cancelar para volver a Editar sin cambios.
+            </p>
+
+            <!-- Vista de carga breve al generar otra animación en Edición -->
+            <div id="edit-anim-loading-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; flex: 1; padding: 45px 20px; text-align: center;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; border: 6px solid #e2e8f0; border-top-color: var(--uabc-blue); border-right-color: var(--uabc-gold); animation: mindSpin 0.85s linear infinite;"></div>
+                <h3 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.28rem; font-weight: 800; color: var(--uabc-blue);">
+                    Generando nueva animación 3D para la diapositiva...
+                </h3>
+                <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                    Construyendo escena holográfica, tarjetas de subtemas y modelos 3D vinculados a la diapositiva...
+                </p>
+            </div>
+
+            <!-- Vista de previsualización y selección de la nueva animación en Edición -->
+            <div id="edit-anim-preview-panel" style="display: flex; flex-direction: column; gap: 14px; flex: 1; justify-content: space-between;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-left: 5px solid var(--uabc-blue); padding: 12px 16px; border-radius: 12px;">
+                    <div>
+                        <div id="edit-anim-variant-title" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.96rem; color: var(--uabc-blue);">
+                            Nueva Variante 3D Generada
+                        </div>
+                        <div id="edit-anim-variant-desc" style="font-size: 0.81rem; color: var(--text-secondary); margin-top: 2px;">
+                            Explora la animación en el visor 3D o presiona "Crear otra animación" para probar otra arquitectura.
+                        </div>
+                    </div>
+                    <button type="button" class="btn" onclick="generarSiguienteVarianteEnEdicion()" style="background: var(--uabc-blue); color: #ffffff; border-color: var(--uabc-blue); font-weight: 700;">
+                        🔄 Crear otra animación
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.35fr 0.85fr; gap: 16px; min-height: 350px; flex: 1;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--uabc-green);">
+                            🎬 Vista Previa 3D de la Nueva Animación (Arrastra con el mouse para girar)
+                        </span>
+                        <div style="flex: 1; min-height: 330px; background: #050d21; border-radius: 14px; border: 3px solid var(--uabc-gold); overflow: hidden; box-shadow: inset 0 0 24px rgba(0,0,0,0.65);">
+                            <iframe id="edit-anim-preview-iframe" style="width: 100%; height: 100%; border: none; display: block; background: #050d21;" title="Vista previa de nueva animación en Edición"></iframe>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--uabc-blue);">
+                            💻 Código A-Frame de la Nueva Animación
+                        </span>
+                        <textarea id="edit-anim-code-box"
+                            style="flex: 1; min-height: 330px; background: #091936; color: #e2e8f0; border: 2px solid #1e3a8a; border-radius: 12px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.5; resize: none;"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-buttons" style="justify-content: space-between;">
+                    <button type="button" class="btn btn-danger" onclick="cancelarSelectorNuevaAnimacionEdicion()">
+                        Cancelar y Volver a Editar
+                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn" onclick="generarSiguienteVarianteEnEdicion()">
+                            🔄 Crear otra animación
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="aplicarNuevaAnimacionEnEdicion()">
+                            ✅ Seleccionar esta Animación
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3125,11 +3202,128 @@
         }
 
         function cerrarModal() {
+            cerrarSelectorNuevaAnimacionEdicionSilencioso();
             document.getElementById('modal-agregar').style.display = 'none';
         }
 
         function editarAnimacion() {
             abrirModal(true);
+        }
+
+        // =====================================================================
+        // SELECTOR DE NUEVA ANIMACIÓN 3D DENTRO DE LA INTERFAZ DE "EDITAR"
+        // =====================================================================
+        let indiceVarianteEdicionActual = 0;
+        let timerGeneracionEdicionId = null;
+
+        function detectarVarianteActualPorCodigo(codigoStr) {
+            const c = String(codigoStr || '');
+            if (c.includes('id="escena_comando_cyber"')) return 1;
+            if (c.includes('id="escena_ejecutiva_uabc"')) return 2;
+            if (c.includes('id="escena_aula_virtual"')) return 3;
+            return 0;
+        }
+
+        function abrirSelectorNuevaAnimacionEdicion() {
+            const modalSelector = document.getElementById('modal-selector-animacion-edicion');
+            if (!modalSelector) return;
+
+            const codigoActualEnEditor = (document.getElementById('input-codigo')?.value || '').trim();
+            // Empezar en la siguiente variante distinta a la que tiene actualmente en el cuadro de edición
+            indiceVarianteEdicionActual = (detectarVarianteActualPorCodigo(codigoActualEnEditor) + 1) % 4;
+
+            modalSelector.style.display = 'flex';
+            ejecutarGeneracionVarianteEnEdicion(indiceVarianteEdicionActual);
+        }
+
+        function generarSiguienteVarianteEnEdicion() {
+            indiceVarianteEdicionActual = (indiceVarianteEdicionActual + 1) % 4;
+            ejecutarGeneracionVarianteEnEdicion(indiceVarianteEdicionActual);
+        }
+
+        function ejecutarGeneracionVarianteEnEdicion(indiceVariante) {
+            if (timerGeneracionEdicionId) {
+                clearTimeout(timerGeneracionEdicionId);
+                timerGeneracionEdicionId = null;
+            }
+
+            const panelLoading = document.getElementById('edit-anim-loading-panel');
+            const panelPreview = document.getElementById('edit-anim-preview-panel');
+            const iframe = document.getElementById('edit-anim-preview-iframe');
+
+            if (panelLoading) panelLoading.style.display = 'flex';
+            if (panelPreview) panelPreview.style.display = 'none';
+            if (iframe) iframe.srcdoc = '';
+
+            const nombrePres = (document.getElementById('input-presentacion')?.value || (currentItem && currentItem.nombrePresentacion) || 'Presentacion').trim();
+            const nombreDiap = (document.getElementById('input-diapositiva')?.value || (currentItem && currentItem.nombreDiapositiva) || 'Diapositiva').trim();
+            const descripcionRef = (currentItem && (currentItem.descripcionDiapositiva || currentItem.analisisSistema))
+                ? (currentItem.descripcionDiapositiva || currentItem.analisisSistema)
+                : `${nombreDiap} - ${nombrePres}`;
+
+            timerGeneracionEdicionId = setTimeout(() => {
+                timerGeneracionEdicionId = null;
+                try {
+                    const resultado = window.SlideCreatorEngine.SlideAnimationGenerator.generarAnimacion3D(
+                        {
+                            nombrePresentacion: nombrePres,
+                            nombreDiapositiva: nombreDiap,
+                            analisisSistema: descripcionRef,
+                            modoInformacionManual: false
+                        },
+                        descripcionRef,
+                        indiceVariante
+                    );
+
+                    const titleEl = document.getElementById('edit-anim-variant-title');
+                    const descEl = document.getElementById('edit-anim-variant-desc');
+                    const codeBox = document.getElementById('edit-anim-code-box');
+
+                    if (titleEl) titleEl.textContent = resultado.nombreVariante;
+                    if (descEl) descEl.textContent = resultado.descripcionVariante;
+                    if (codeBox) codeBox.value = resultado.codigoAnimacion;
+                    if (iframe) iframe.srcdoc = construirHtmlEscenaPrueba(resultado.codigoAnimacion);
+
+                    if (panelLoading) panelLoading.style.display = 'none';
+                    if (panelPreview) panelPreview.style.display = 'flex';
+                } catch (err) {
+                    console.error("Error generando animación en modo edición:", err);
+                    if (panelLoading) panelLoading.style.display = 'none';
+                    if (panelPreview) panelPreview.style.display = 'flex';
+                }
+            }, 380);
+        }
+
+        function aplicarNuevaAnimacionEnEdicion() {
+            const codeBox = document.getElementById('edit-anim-code-box');
+            const nuevoCodigo = (codeBox && codeBox.value ? codeBox.value : '').trim();
+            if (!nuevoCodigo) {
+                alert("El código de la nueva animación está vacío.");
+                return;
+            }
+            if (!confirm("¿Deseas seleccionar esta nueva animación 3D y colocarla en el formulario de edición?")) {
+                return;
+            }
+            const inputCodigoEditor = document.getElementById('input-codigo');
+            if (inputCodigoEditor) {
+                inputCodigoEditor.value = nuevoCodigo;
+            }
+            cerrarSelectorNuevaAnimacionEdicionSilencioso();
+        }
+
+        function cancelarSelectorNuevaAnimacionEdicion() {
+            cerrarSelectorNuevaAnimacionEdicionSilencioso();
+        }
+
+        function cerrarSelectorNuevaAnimacionEdicionSilencioso() {
+            if (timerGeneracionEdicionId) {
+                clearTimeout(timerGeneracionEdicionId);
+                timerGeneracionEdicionId = null;
+            }
+            const modalSelector = document.getElementById('modal-selector-animacion-edicion');
+            const iframe = document.getElementById('edit-anim-preview-iframe');
+            if (modalSelector) modalSelector.style.display = 'none';
+            if (iframe) iframe.srcdoc = '';
         }
 
         // Utilidades de la UI (Fotos y Creación del archivo .mind al Guardar y Confirmar)
