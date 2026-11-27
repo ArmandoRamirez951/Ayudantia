@@ -1966,6 +1966,9 @@
                         🔄 Crear otra animación
                     </button>
                 </div>
+                <div id="edit-draft-anim-notice" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid var(--uabc-gold); color: #92400e; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">
+                    ⚠️ Nueva animación cargada como borrador. Presiona <strong>"Guardar Animación"</strong> para confirmar la edición; si presionas <strong>"Cancelar"</strong> o sales de esta ventana, se conservará la animación anterior.
+                </div>
                 <textarea id="input-codigo" placeholder="<a-entity>...</a-entity>"></textarea>
             </div>
 
@@ -2363,6 +2366,10 @@
         let modoVistaCatalogo = 'mis'; // 'mis' = Mis Animaciones | 'todas' = Todas las Animaciones
 
         function cambiarVistaSeccion(seccion) {
+            const modalAgregarEl = document.getElementById('modal-agregar');
+            if (modalAgregarEl && modalAgregarEl.style.display === 'flex') {
+                cerrarModal();
+            }
             const catalogoWrapper = document.getElementById('catalogo-section-wrapper');
             const rolesView = document.getElementById('roles-view');
             const instruccionesView = document.getElementById('instrucciones-view');
@@ -3168,29 +3175,37 @@
             document.getElementById('nav-actions').style.display = (modoVistaCatalogo === 'todas') ? 'none' : 'flex';
         }
 
-        // 5. Modal Funciones (Si no es edición, inicia el flujo de máquina de estados del botón Crear)
+        // 5. Modal Funciones (Con respaldo estricto para descartar cambios si se cancela o se sale sin confirmar la edición)
+        let respaldoOriginalItemEdicion = null;
+
         function abrirModal(editMode = false) {
             if (!editMode) {
                 iniciarFlujoCreacionDiapositiva();
                 return;
             }
             document.getElementById('modal-agregar').style.display = 'flex';
+            const noticeDraft = document.getElementById('edit-draft-anim-notice');
+            if (noticeDraft) noticeDraft.style.display = 'none';
             
             if (editMode && currentItem) {
+                // Guardar copia intacta del estado original antes de editar
+                respaldoOriginalItemEdicion = JSON.parse(JSON.stringify(currentItem));
+
                 document.getElementById('modal-title').innerText = "Editar Animación";
-                document.getElementById('input-id').value = currentItem.id;
-                document.getElementById('input-presentacion').value = currentItem.nombrePresentacion;
-                document.getElementById('input-diapositiva').value = currentItem.nombreDiapositiva;
-                document.getElementById('input-codigo').value = currentItem.codigoAnimacion;
+                document.getElementById('input-id').value = respaldoOriginalItemEdicion.id;
+                document.getElementById('input-presentacion').value = respaldoOriginalItemEdicion.nombrePresentacion;
+                document.getElementById('input-diapositiva').value = respaldoOriginalItemEdicion.nombreDiapositiva;
+                document.getElementById('input-codigo').value = respaldoOriginalItemEdicion.codigoAnimacion;
                 
                 // Mostrar foto actual en vista previa
                 const previewImg = document.getElementById('preview-img');
                 const previewContainer = document.getElementById('preview-container');
-                previewImg.src = currentItem.foto;
+                previewImg.src = respaldoOriginalItemEdicion.foto;
                 previewContainer.style.display = 'block';
                 document.getElementById('input-foto').value = '';
                 quitarMind();
             } else {
+                respaldoOriginalItemEdicion = null;
                 document.getElementById('modal-title').innerText = "Agregar Nueva Animación";
                 document.getElementById('input-id').value = "";
                 document.getElementById('input-presentacion').value = "";
@@ -3201,8 +3216,43 @@
             }
         }
 
+        function restaurarEstadoAnteriorEdicionNoConfirmada() {
+            if (!respaldoOriginalItemEdicion) return;
+
+            // Restaurar el objeto en memoria (currentItem y dbData) con los datos y animación anteriores
+            const idx = dbData.findIndex(d => d.id == respaldoOriginalItemEdicion.id);
+            if (idx !== -1) {
+                dbData[idx] = JSON.parse(JSON.stringify(respaldoOriginalItemEdicion));
+                currentItem = dbData[idx];
+            } else {
+                currentItem = JSON.parse(JSON.stringify(respaldoOriginalItemEdicion));
+            }
+
+            // Restaurar también los campos del formulario de edición a sus valores anteriores
+            const inpPres = document.getElementById('input-presentacion');
+            const inpDiap = document.getElementById('input-diapositiva');
+            const inpCod = document.getElementById('input-codigo');
+            const prevImg = document.getElementById('preview-img');
+            const inpFoto = document.getElementById('input-foto');
+            const noticeDraft = document.getElementById('edit-draft-anim-notice');
+
+            if (inpPres) inpPres.value = respaldoOriginalItemEdicion.nombrePresentacion || '';
+            if (inpDiap) inpDiap.value = respaldoOriginalItemEdicion.nombreDiapositiva || '';
+            if (inpCod) inpCod.value = respaldoOriginalItemEdicion.codigoAnimacion || '';
+            if (prevImg) prevImg.src = respaldoOriginalItemEdicion.foto || '';
+            if (inpFoto) inpFoto.value = '';
+            if (noticeDraft) noticeDraft.style.display = 'none';
+
+            // Si la vista de detalle está abierta, re-renderizarla con la versión anterior intacta
+            const detailView = document.getElementById('detail-view');
+            if (detailView && detailView.style.display !== 'none' && currentItem) {
+                abrirDetalle(currentItem.id);
+            }
+        }
+
         function cerrarModal() {
             cerrarSelectorNuevaAnimacionEdicionSilencioso();
+            restaurarEstadoAnteriorEdicionNoConfirmada();
             document.getElementById('modal-agregar').style.display = 'none';
         }
 
@@ -3307,6 +3357,10 @@
             const inputCodigoEditor = document.getElementById('input-codigo');
             if (inputCodigoEditor) {
                 inputCodigoEditor.value = nuevoCodigo;
+            }
+            const noticeDraft = document.getElementById('edit-draft-anim-notice');
+            if (noticeDraft) {
+                noticeDraft.style.display = 'block';
             }
             cerrarSelectorNuevaAnimacionEdicionSilencioso();
         }
