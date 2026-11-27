@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- Compilador nativo CPU para generar el archivo .mind en ~3 segundos sin bloqueos de WebGL -->
     <script src="mind-compiler.js"></script>
+    <!-- Motor de Lógica de Negocio: Máquina de Estados, Analizador Local de Diapositiva y Generador 3D A-Frame -->
+    <script src="slide-creator-engine.js"></script>
     <style>
         :root {
             --uabc-blue: #092468;
@@ -1345,10 +1347,10 @@
                             <span class="smart-search-badge" id="smart-search-status"></span>
                         </div>
 
-                        <!-- Botones Visualizador (Fondo Azul) y + Agregar ubicados en la esquina dentro de la interfaz de Mis Animaciones -->
+                        <!-- Botones Visualizador (Fondo Azul) y + Crear ubicados en la esquina dentro de la interfaz de Mis Animaciones -->
                         <div id="nav-actions" style="display: flex; gap: 10px; align-items: center;">
                             <button type="button" class="btn" id="btn-visualizador" onclick="abrirVisualizadorCodigo()" style="background-color: var(--uabc-blue); color: #ffffff; border: 1px solid var(--uabc-blue);">Visualizador</button>
-                            <button class="btn btn-primary" onclick="abrirModal()">+ Agregar</button>
+                            <button type="button" class="btn btn-primary" id="btn-crear-diapositiva" onclick="iniciarFlujoCreacionDiapositiva()">+ Crear</button>
                         </div>
                     </div>
 
@@ -1613,6 +1615,281 @@
 
             <div class="modal-buttons">
                 <button type="button" class="btn" onclick="cerrarVisualizadorCodigo()">Cerrar Visualizador</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         FLUJO PASO A PASO (MÁQUINA DE ESTADOS) VINCULADO AL BOTÓN "CREAR"
+         Estados explícitos:
+         idle -> form -> loading_mind -> review_mind -> loading_animation
+              -> select_animation -> implementing -> completed
+         ====================================================================== -->
+    <div class="modal-overlay" id="modal-flujo-creacion" data-state="idle">
+        <div class="modal-content" style="width: 95%; max-width: 1120px; min-height: 76vh; max-height: 94vh; padding: 34px 42px; border-top: 6px solid var(--uabc-green);">
+            <!-- Barra de progreso de estados superior -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 14px; border-bottom: 2px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="flow-state-badge" style="background: var(--uabc-blue); color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; letter-spacing: 0.04em;">ESTADO: FORM</span>
+                    <h2 id="flow-step-main-title" style="margin: 0; font-size: 1.32rem; text-align: left;">Crear Nueva Diapositiva con Reconocimiento AR</h2>
+                </div>
+                <div id="flow-stepper-pills" style="display: flex; gap: 6px; flex-wrap: wrap; font-size: 0.74rem; font-weight: 700;">
+                    <span data-pill="form" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">1. Formulario</span>
+                    <span data-pill="loading_mind" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">2. Archivo .mind</span>
+                    <span data-pill="review_mind" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">3. Validar Contenido</span>
+                    <span data-pill="loading_animation" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">4. Generar 3D</span>
+                    <span data-pill="select_animation" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">5. Seleccionar 3D</span>
+                    <span data-pill="implementing" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">6. Implementar</span>
+                    <span data-pill="completed" style="padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155;">7. Finalizado</span>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 1: FORM (Inicio y formulario del botón "Crear")
+                 ============================================================== -->
+            <div id="flow-view-form" class="flow-step-panel" style="display: none; flex-direction: column; gap: 18px; flex: 1; justify-content: space-between;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 5px solid var(--uabc-green); padding: 12px 16px; border-radius: 10px; font-size: 0.88rem; color: var(--text-secondary);">
+                        Completa todos los campos requeridos y sube la captura de tu diapositiva. El botón de confirmación se habilitará automáticamente cuando los campos estén completos.
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+                        <div class="form-group">
+                            <label>Nombre de la presentación <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="flow-input-presentacion" placeholder="Ej. Unidad I_Fundamentos de Metodología" autocomplete="off" oninput="validarFormularioFlujoCreacion()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombre de la diapositiva <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="flow-input-diapositiva" placeholder="Ej. Tipos de investigación científica" autocomplete="off" oninput="validarFormularioFlujoCreacion()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Captura / Foto de la diapositiva (.PNG o .JPG) <span style="color: var(--danger);">*</span></label>
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <input type="file" id="flow-input-foto" accept="image/png, image/jpeg" onchange="manejarCambioFotoFlujoCreacion()" style="flex: 1;">
+                            <button type="button" class="btn btn-danger" id="flow-btn-quitar-foto" onclick="quitarFotoFlujoCreacion()" style="display: none; padding: 8px 14px;">✕ Quitar imagen</button>
+                        </div>
+                        <div id="flow-foto-preview-box" style="display: none; margin-top: 10px; background: #0f172a; border-radius: 12px; border: 2px solid var(--uabc-gold); padding: 12px; text-align: center;">
+                            <img id="flow-foto-preview-img" alt="Vista previa de la diapositiva" style="max-width: 100%; max-height: 290px; object-fit: contain; border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons" style="justify-content: space-between;">
+                    <button type="button" class="btn" onclick="solicitarCancelacionFlujoCreacion('auto')">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="flow-btn-confirmar-form" onclick="confirmarFormularioEIniciarMind()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        Confirmar y Generar Archivo .mind ➜
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 2: LOADING_MIND (Pantalla de carga 1: Archivo .mind)
+                 ============================================================== -->
+            <div id="flow-view-loading_mind" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1; padding: 40px 20px; text-align: center;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; border: 6px solid #e2e8f0; border-top-color: var(--uabc-green); border-right-color: var(--uabc-gold); animation: mindSpin 0.9s linear infinite;"></div>
+                <h3 id="flow-mind-loading-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--uabc-blue);">
+                    Generando archivo .mind y analizando diapositiva...
+                </h3>
+                <p id="flow-mind-loading-subtitle" style="margin: 0; max-width: 580px; font-size: 0.94rem; color: var(--text-secondary); line-height: 1.55;">
+                    Procesando puntos característicos FREAK y extrayendo el contenido temático de la captura de la diapositiva...
+                </p>
+                <div style="width: 100%; max-width: 520px; height: 14px; background: #e2e8f0; border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);">
+                    <div id="flow-mind-progress-bar" style="width: 5%; height: 100%; background: linear-gradient(90deg, var(--uabc-blue), var(--uabc-green)); transition: width 0.18s ease;"></div>
+                </div>
+                <div id="flow-mind-progress-pct" style="font-family: 'Montserrat', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--uabc-green);">5%</div>
+                <button type="button" class="btn" onclick="solicitarCancelacionFlujoCreacion(true)" style="margin-top: 8px;">Cancelar</button>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 3: REVIEW_MIND (Validación y edición del contenido)
+                 ============================================================== -->
+            <div id="flow-view-review_mind" class="flow-step-panel" style="display: none; flex-direction: column; gap: 18px; flex: 1; justify-content: space-between;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Banner de confirmación de creación del archivo .mind -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #ecfdf5; border: 2px solid #6ee7b7; border-radius: 12px; padding: 14px 18px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 1.65rem;">✅</span>
+                            <div>
+                                <div style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.02rem; color: var(--uabc-green);">
+                                    ¡El archivo .mind se creó correctamente!
+                                </div>
+                                <div style="font-size: 0.84rem; color: var(--text-secondary);">
+                                    Archivo generado en memoria listo para registro: <code id="flow-review-mind-filename" style="font-weight: 700; color: var(--uabc-blue);">Presentacion_Diapositiva.mind</code>
+                                </div>
+                            </div>
+                        </div>
+                        <img id="flow-review-thumb" alt="Miniatura" style="height: 54px; width: 92px; object-fit: cover; border-radius: 8px; border: 2px solid var(--uabc-gold); background: #0f172a;">
+                    </div>
+
+                    <!-- Dos cuadros de texto: 1. Lo que arroja el sistema | 2. Editable por el programador -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
+                        <!-- Cuadro 1: De qué trata la diapositiva según el sistema -->
+                        <div class="form-group" style="display: flex; flex-direction: column;">
+                            <label style="color: var(--uabc-blue); font-size: 0.9rem; font-weight: 700;">
+                                🤖 1. ¿De qué trata la diapositiva? (Análisis arrojado por el sistema)
+                            </label>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                                Información detectada automáticamente al analizar la captura de la diapositiva:
+                            </span>
+                            <textarea id="flow-textarea-sistema" readonly
+                                style="flex: 1; min-height: 235px; background: #f8fafc; color: #1e293b; border: 2px solid #94a3b8; border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.88rem; line-height: 1.55; resize: vertical;"></textarea>
+                        </div>
+
+                        <!-- Cuadro 2: Cuadro editable para que el programador escriba o corrija lo que quiere decir la diapositiva -->
+                        <div class="form-group" style="display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                <label style="color: var(--uabc-green); font-size: 0.9rem; font-weight: 700;">
+                                    ✏️ 2. Contenido definitivo (Escribe o corrige lo que quiere decir la diapositiva)
+                                </label>
+                                <button type="button" class="btn" onclick="copiarTextoSistemaAPersonalizado()" style="padding: 3px 9px; font-size: 0.73rem;">
+                                    📋 Copiar del sistema
+                                </button>
+                            </div>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                                Si la descripción del sistema es correcta puedes dejarlo así o editar aquí lo que realmente quiere decir la diapositiva:
+                            </span>
+                            <textarea id="flow-textarea-programador"
+                                placeholder="Escribe o corrige aquí lo que quiere decir la diapositiva (si no realizas cambios, al confirmar se guardará la descripción generada por el sistema)..."
+                                style="flex: 1; min-height: 235px; background: #ffffff; color: #0f172a; border: 2px solid var(--uabc-green); border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.9rem; line-height: 1.55; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons" style="justify-content: space-between;">
+                    <button type="button" class="btn btn-danger" onclick="solicitarCancelacionFlujoCreacion(true)">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="confirmarContenidoYGenerarAnimacion()">
+                        Confirmar ➜
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 4: LOADING_ANIMATION (Pantalla de carga 2: Animación)
+                 ============================================================== -->
+            <div id="flow-view-loading_animation" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1; padding: 40px 20px; text-align: center;">
+                <div style="width: 72px; height: 72px; border-radius: 50%; border: 6px solid #e2e8f0; border-top-color: var(--uabc-blue); border-right-color: var(--uabc-gold); animation: mindSpin 0.85s linear infinite;"></div>
+                <h3 id="flow-anim-loading-title" style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--uabc-blue);">
+                    Creando animación 3D para la diapositiva...
+                </h3>
+                <p id="flow-anim-loading-subtitle" style="margin: 0; max-width: 580px; font-size: 0.94rem; color: var(--text-secondary); line-height: 1.55;">
+                    Construyendo modelos 3D, paneles holográficos y diagramas dinámicos en A-Frame a partir del contenido confirmado...
+                </p>
+                <div style="width: 100%; max-width: 520px; height: 14px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                    <div id="flow-anim-progress-bar" style="width: 15%; height: 100%; background: linear-gradient(90deg, var(--uabc-blue), var(--uabc-gold), var(--uabc-green)); transition: width 0.18s ease;"></div>
+                </div>
+                <div id="flow-anim-progress-pct" style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--uabc-blue);">15%</div>
+                <button type="button" class="btn" onclick="solicitarCancelacionFlujoCreacion(true)" style="margin-top: 8px;">Cancelar</button>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 5: SELECT_ANIMATION (Previsualización y selección 3D)
+                 ============================================================== -->
+            <div id="flow-view-select_animation" class="flow-step-panel" style="display: none; flex-direction: column; gap: 16px; flex: 1; justify-content: space-between;">
+                <div style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
+                    <!-- Encabezado de variante y botón para crear otra animación -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-left: 5px solid var(--uabc-blue); padding: 12px 16px; border-radius: 12px;">
+                        <div>
+                            <div id="flow-anim-variant-title" style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.98rem; color: var(--uabc-blue);">
+                                Variante #1 generada
+                            </div>
+                            <div id="flow-anim-variant-desc" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">
+                                Puedes rotar y explorar la animación 3D con el mouse o generar otra arquitectura distinta si lo prefieres.
+                            </div>
+                        </div>
+                        <button type="button" class="btn" onclick="generarOtraAnimacionEnFlujo()" style="background: var(--uabc-blue); color: #ffffff; border-color: var(--uabc-blue); font-weight: 700;">
+                            🔄 Crear otra animación
+                        </button>
+                    </div>
+
+                    <!-- Visor 3D en vivo + Código A-Frame generado -->
+                    <div style="display: grid; grid-template-columns: 1.35fr 0.85fr; gap: 16px; min-height: 360px; flex: 1;">
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--uabc-green);">
+                                🎬 Previsualización Interactiva de la Animación 3D (Arrastra con el mouse para girar)
+                            </span>
+                            <div style="flex: 1; min-height: 335px; background: #050d21; border-radius: 14px; border: 3px solid var(--uabc-gold); overflow: hidden; box-shadow: inset 0 0 24px rgba(0,0,0,0.65);">
+                                <iframe id="flow-anim-preview-iframe" style="width: 100%; height: 100%; border: none; display: block; background: #050d21;" title="Previsualización de Animación 3D"></iframe>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--uabc-blue);">
+                                    💻 Código A-Frame Generado (Editable si deseas ajustar algún detalle)
+                                </span>
+                                <button type="button" class="btn" style="padding: 3px 10px; font-size: 0.74rem;" onclick="actualizarPreviewDesdeCodigoFlujo()">▶ Actualizar Vista</button>
+                            </div>
+                            <textarea id="flow-anim-code-box"
+                                style="flex: 1; min-height: 335px; background: #091936; color: #e2e8f0; border: 2px solid #1e3a8a; border-radius: 12px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.5; resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons" style="justify-content: space-between;">
+                    <button type="button" class="btn btn-danger" onclick="solicitarCancelacionFlujoCreacion(true)">
+                        Cancelar
+                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn" onclick="generarOtraAnimacionEnFlujo()">
+                            🔄 Crear otra animación
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="confirmarSeleccionAnimacionEImplementar()">
+                            Confirmar ➜
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 6: IMPLEMENTING (Implementación y registro del target)
+                 ============================================================== -->
+            <div id="flow-view-implementing" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1; padding: 36px 20px; text-align: center;">
+                <div style="width: 68px; height: 68px; border-radius: 50%; border: 6px solid #e2e8f0; border-top-color: var(--uabc-green); border-right-color: var(--uabc-blue); animation: mindSpin 0.85s linear infinite;"></div>
+                <h3 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.38rem; font-weight: 800; color: var(--uabc-blue);">
+                    Implementando diapositiva en el catálogo activo de reconocimiento...
+                </h3>
+                <p style="margin: 0; max-width: 600px; font-size: 0.92rem; color: var(--text-secondary);">
+                    Se está guardando y registrando la nueva diapositiva vinculando su archivo <code>.mind</code>, la descripción confirmada y la animación seleccionada para activarla en cámara.
+                </p>
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 24px; width: 100%; max-width: 540px; text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem;">
+                    <div id="flow-impl-step-1" style="color: var(--uabc-green); font-weight: 700;">⏳ 1. Almacenando captura y archivo .mind en Modelos_AR/...</div>
+                    <div id="flow-impl-step-2" style="color: var(--text-muted); font-weight: 600;">⏳ 2. Vinculando descripción confirmada y animación 3D en diapositivas.json...</div>
+                    <div id="flow-impl-step-3" style="color: var(--text-muted); font-weight: 600;">⏳ 3. Activando target de reconocimiento en tiempo real para el módulo de cámara...</div>
+                </div>
+            </div>
+
+            <!-- ==============================================================
+                 ESTADO 7: COMPLETED (Confirmación final y disponibilidad en cámara)
+                 ============================================================== -->
+            <div id="flow-view-completed" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1; padding: 30px 20px; text-align: center;">
+                <div style="width: 78px; height: 78px; border-radius: 50%; background: #ecfdf5; border: 3px solid var(--uabc-green); display: flex; align-items: center; justify-content: center; font-size: 2.3rem; box-shadow: 0 12px 24px rgba(0, 132, 61, 0.2);">
+                    ✅
+                </div>
+                <h3 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--uabc-green);">
+                    ¡Proceso finalizado correctamente!
+                </h3>
+                <p style="margin: 0; max-width: 620px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.55;">
+                    La nueva diapositiva, su patrón de reconocimiento <code>.mind</code>, la descripción confirmada y su animación 3D han quedado implementados y <strong>activos de inmediato</strong> para ser escaneados con la cámara.
+                </p>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border-strong); border-left: 5px solid var(--uabc-green); border-radius: 12px; padding: 16px 22px; width: 100%; max-width: 580px; text-align: left; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
+                    <div><strong>📂 Presentación:</strong> <span id="flow-done-pres">-</span></div>
+                    <div><strong>🖼️ Diapositiva:</strong> <span id="flow-done-diap">-</span></div>
+                    <div><strong>🎯 Archivo Target (.mind):</strong> <code id="flow-done-mind" style="color: var(--uabc-green); font-weight: 700;">-</code></div>
+                    <div><strong>📝 Descripción confirmada:</strong> <span id="flow-done-desc" style="color: var(--text-secondary);">-</span></div>
+                    <div><strong>📷 Estado en Cámara AR:</strong> <span style="color: var(--uabc-green); font-weight: 800;">● Activa y lista para escanear sin recargar</span></div>
+                </div>
+
+                <div class="modal-buttons" style="width: 100%; max-width: 580px; justify-content: center; border-top: none; margin-top: 6px;">
+                    <button type="button" class="btn btn-primary" onclick="finalizarFlujoYRegresarAPrincipal()" style="padding: 13px 38px; font-size: 1rem; font-weight: 800;">
+                        Aceptar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2683,6 +2960,14 @@
             const idSafe = escaparHTML(currentItem.id || '');
             const fotoSafe = escaparHTML(currentItem.foto || '');
             const mindSafe = escaparHTML(currentItem.mindFile || '');
+            const descConfirmadaSafe = escaparHTML(currentItem.descripcionDiapositiva || '');
+
+            const bloqueDescripcionDetalle = descConfirmadaSafe
+                ? `<div class="file-info-group" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-color);">
+                       <span class="meta-label">Descripción Confirmada de la Diapositiva</span>
+                       <div style="font-size: 0.86rem; color: var(--text-secondary); background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; line-height: 1.5; white-space: pre-wrap;">${descConfirmadaSafe}</div>
+                   </div>`
+                : '';
 
             // Mostrar quién la creó / actualizó y la fecha al abrir el detalle
             const bloqueAutoriaDetalle = `
@@ -2735,6 +3020,7 @@
                             <span class="meta-label">Patrón de Reconocimiento (.MIND)</span>
                             <div class="file-badge">${mindSafe}</div>
                         </div>
+                        ${bloqueDescripcionDetalle}
                     </div>
 
                     <!-- Panel Derecho: Código con tamaño fijo, scroll vertical y botón Ver Simulación -->
@@ -2777,8 +3063,12 @@
             document.getElementById('nav-actions').style.display = (modoVistaCatalogo === 'todas') ? 'none' : 'flex';
         }
 
-        // 5. Modal Funciones
+        // 5. Modal Funciones (Si no es edición, inicia el flujo de máquina de estados del botón Crear)
         function abrirModal(editMode = false) {
+            if (!editMode) {
+                iniciarFlujoCreacionDiapositiva();
+                return;
+            }
             document.getElementById('modal-agregar').style.display = 'flex';
             
             if (editMode && currentItem) {
@@ -2961,8 +3251,10 @@
             
             const nombrePres = document.getElementById('input-presentacion').value;
             const nombreDiap = document.getElementById('input-diapositiva').value;
-            const foto = document.getElementById('input-foto').files[0];
-            let mindFile = document.getElementById('input-mind').files[0];
+            const fotoInputEl = document.getElementById('input-foto');
+            const foto = (fotoInputEl && fotoInputEl.files && fotoInputEl.files.length > 0) ? fotoInputEl.files[0] : null;
+            const subioNuevaImagen = Boolean(foto && foto.size > 0);
+            let mindFile = null;
             const codigo = document.getElementById('input-codigo').value;
 
             // --- REGLA: Si es edición y no modificó NADA, bloqueamos el guardado ---
@@ -2972,7 +3264,7 @@
                     nombreDiap === currentItem.nombreDiapositiva &&
                     codigo === currentItem.codigoAnimacion
                 );
-                const sinArchivosNuevos = (!foto && !mindFile);
+                const sinArchivosNuevos = !subioNuevaImagen;
 
                 if (sinCambiosTexto && sinArchivosNuevos) {
                     alert("No se modificó nada. Cambia algún texto o sube un archivo nuevo para poder actualizar el repositorio.");
@@ -2985,7 +3277,7 @@
                 return;
             }
 
-            if(!esEdicion && !foto) {
+            if(!esEdicion && !subioNuevaImagen) {
                 alert("Error: Para una NUEVA animación es obligatorio subir la foto de la diapositiva.");
                 return;
             }
@@ -2993,8 +3285,8 @@
             const confirmMsg = esEdicion ? "¿Guardar cambios en esta animación?" : "¿Guardar esta nueva animación?";
             if (!confirm(confirmMsg)) return;
 
-            // Si se subió una foto nueva, mostramos la pantalla de carga y creamos el archivo .mind en este momento
-            if (foto) {
+            // Solo si se subió una foto nueva, mostramos la pantalla de carga y creamos el archivo .mind
+            if (subioNuevaImagen) {
                 try {
                     const nombreArchivoMind = construirNombreArchivoMind(nombrePres, nombreDiap);
                     mostrarPantallaCargaMind(
@@ -3020,8 +3312,8 @@
             if (esEdicion) formData.append('id', id);
             formData.append('nombrePresentacion', nombrePres);
             formData.append('nombreDiapositiva', nombreDiap);
-            if(foto) formData.append('foto', foto);
-            if(mindFile) formData.append('mindFile', mindFile);
+            if (subioNuevaImagen) formData.append('foto', foto);
+            if (subioNuevaImagen && mindFile) formData.append('mindFile', mindFile);
             formData.append('codigoAnimacion', codigo);
             formData.append('usuarioAutor', sesionAutor ? sesionAutor.usuario : 'admin');
             formData.append('nombreAutor', sesionAutor ? sesionAutor.nombre : 'Administrador General');
@@ -3037,8 +3329,9 @@
                 ocultarPantallaCargaMind();
 
                 if(response.ok) {
+                    notificarActualizacionCatalogoACamara();
                     salidaAutorizada = true;
-                    if (foto) {
+                    if (subioNuevaImagen) {
                         alert("¡Diapositiva guardada y archivo .mind creado correctamente!");
                     } else {
                         alert("¡Datos actualizados correctamente!");
@@ -3066,6 +3359,7 @@
                 });
 
                 if(response.ok) {
+                    notificarActualizacionCatalogoACamara();
                     salidaAutorizada = true;
                     alert("¡Eliminado correctamente!");
                     window.location.reload();
@@ -3075,6 +3369,585 @@
             } catch (error) {
                 alert("Error de conexión.");
             }
+        }
+
+        // =====================================================================
+        // CONTROLADOR DE UI CONECTADO A LA MÁQUINA DE ESTADOS (BOTÓN "CREAR")
+        // Estados: idle, form, loading_mind, review_mind, loading_animation,
+        //          select_animation, implementing, completed
+        // =====================================================================
+        const flujoCreacionSM = new window.SlideCreatorEngine.SlideCreationStateMachine();
+
+        const TITULOS_POR_ESTADO = {
+            idle: 'Mis Animaciones',
+            form: 'Paso 1 • Datos y Captura de la Nueva Diapositiva',
+            loading_mind: 'Paso 2 • Generando Archivo .mind y Analizando Diapositiva',
+            review_mind: 'Paso 3 • Validación y Edición del Contenido de la Diapositiva',
+            loading_animation: 'Paso 4 • Creación Automática de la Animación 3D',
+            select_animation: 'Paso 5 • Previsualización y Selección de Animación 3D',
+            implementing: 'Paso 6 • Implementación y Registro del Target en Cámara',
+            completed: 'Paso 7 • Diapositiva Implementada y Lista en Cámara'
+        };
+
+        flujoCreacionSM.onStateChange((nuevoEstado, estadoAnterior, ctx) => {
+            sincronizarVistaMaquinaEstados(nuevoEstado, ctx);
+        });
+
+        function sincronizarVistaMaquinaEstados(estado, ctx) {
+            const modalOverlay = document.getElementById('modal-flujo-creacion');
+            if (!modalOverlay) return;
+
+            modalOverlay.setAttribute('data-state', estado);
+
+            if (estado === 'idle') {
+                modalOverlay.style.display = 'none';
+                const iframePreview = document.getElementById('flow-anim-preview-iframe');
+                if (iframePreview) iframePreview.srcdoc = '';
+                return;
+            }
+
+            modalOverlay.style.display = 'flex';
+
+            const badgeEl = document.getElementById('flow-state-badge');
+            if (badgeEl) badgeEl.textContent = `ESTADO: ${estado.toUpperCase()}`;
+
+            const titleEl = document.getElementById('flow-step-main-title');
+            if (titleEl) titleEl.textContent = TITULOS_POR_ESTADO[estado] || 'Crear Nueva Diapositiva';
+
+            // Actualizar pastillas indicadoras de progreso
+            const ordenEstados = ['form', 'loading_mind', 'review_mind', 'loading_animation', 'select_animation', 'implementing', 'completed'];
+            const idxActual = ordenEstados.indexOf(estado);
+            const pills = modalOverlay.querySelectorAll('#flow-stepper-pills [data-pill]');
+            pills.forEach((pill) => {
+                const pState = pill.getAttribute('data-pill');
+                const pIdx = ordenEstados.indexOf(pState);
+                if (pState === estado) {
+                    pill.style.background = 'var(--uabc-green)';
+                    pill.style.color = '#ffffff';
+                } else if (pIdx < idxActual) {
+                    pill.style.background = '#dcfce7';
+                    pill.style.color = 'var(--uabc-green)';
+                } else {
+                    pill.style.background = '#e2e8f0';
+                    pill.style.color = '#334155';
+                }
+            });
+
+            // Mostrar únicamente el panel correspondiente al estado activo
+            const paneles = modalOverlay.querySelectorAll('.flow-step-panel');
+            paneles.forEach((panel) => {
+                panel.style.display = 'none';
+            });
+            const panelActivo = document.getElementById(`flow-view-${estado}`);
+            if (panelActivo) {
+                panelActivo.style.display = 'flex';
+            }
+        }
+
+        let timerCargaAnimacionId = null;
+        let timerTransicionMindId = null;
+
+        function detenerTimersFlujoCreacion() {
+            if (timerCargaAnimacionId) {
+                clearInterval(timerCargaAnimacionId);
+                timerCargaAnimacionId = null;
+            }
+            if (timerTransicionMindId) {
+                clearTimeout(timerTransicionMindId);
+                timerTransicionMindId = null;
+            }
+        }
+
+        function limpiarCamposDOMFlujoCreacion() {
+            detenerTimersFlujoCreacion();
+            const inpPres = document.getElementById('flow-input-presentacion');
+            const inpDiap = document.getElementById('flow-input-diapositiva');
+            const inpFoto = document.getElementById('flow-input-foto');
+            const prevBox = document.getElementById('flow-foto-preview-box');
+            const prevImg = document.getElementById('flow-foto-preview-img');
+            const btnQuitar = document.getElementById('flow-btn-quitar-foto');
+            const btnConfirmForm = document.getElementById('flow-btn-confirmar-form');
+            const txtSistema = document.getElementById('flow-textarea-sistema');
+            const txtProg = document.getElementById('flow-textarea-programador');
+            const txtCode = document.getElementById('flow-anim-code-box');
+            const iframe = document.getElementById('flow-anim-preview-iframe');
+            const barMind = document.getElementById('flow-mind-progress-bar');
+            const pctMind = document.getElementById('flow-mind-progress-pct');
+            const barAnim = document.getElementById('flow-anim-progress-bar');
+            const pctAnim = document.getElementById('flow-anim-progress-pct');
+
+            if (inpPres) inpPres.value = '';
+            if (inpDiap) inpDiap.value = '';
+            if (inpFoto) inpFoto.value = '';
+            if (prevBox) prevBox.style.display = 'none';
+            if (prevImg) prevImg.src = '';
+            if (btnQuitar) btnQuitar.style.display = 'none';
+            if (btnConfirmForm) {
+                btnConfirmForm.disabled = true;
+                btnConfirmForm.style.opacity = '0.5';
+                btnConfirmForm.style.cursor = 'not-allowed';
+            }
+            if (txtSistema) txtSistema.value = '';
+            if (txtProg) txtProg.value = '';
+            if (txtCode) txtCode.value = '';
+            if (iframe) iframe.srcdoc = '';
+            if (barMind) barMind.style.width = '0%';
+            if (pctMind) pctMind.textContent = '0%';
+            if (barAnim) barAnim.style.width = '0%';
+            if (pctAnim) pctAnim.textContent = '0%';
+        }
+
+        // Paso 1: Inicio y formulario al presionar el botón "Crear"
+        function iniciarFlujoCreacionDiapositiva() {
+            flujoCreacionSM.reset();
+            limpiarCamposDOMFlujoCreacion();
+            flujoCreacionSM.transitionTo('form');
+        }
+
+        function validarFormularioFlujoCreacion() {
+            const nombrePres = (document.getElementById('flow-input-presentacion').value || '').trim();
+            const nombreDiap = (document.getElementById('flow-input-diapositiva').value || '').trim();
+            const fotoInput = document.getElementById('flow-input-foto');
+            const tieneFoto = Boolean(fotoInput && fotoInput.files && fotoInput.files.length > 0 && fotoInput.files[0].size > 0);
+
+            const completo = Boolean(nombrePres.length > 0 && nombreDiap.length > 0 && tieneFoto);
+            const btnConfirmar = document.getElementById('flow-btn-confirmar-form');
+            if (btnConfirmar) {
+                btnConfirmar.disabled = !completo;
+                btnConfirmar.style.opacity = completo ? '1' : '0.5';
+                btnConfirmar.style.cursor = completo ? 'pointer' : 'not-allowed';
+            }
+            return completo;
+        }
+
+        function manejarCambioFotoFlujoCreacion() {
+            const fotoInput = document.getElementById('flow-input-foto');
+            const prevBox = document.getElementById('flow-foto-preview-box');
+            const prevImg = document.getElementById('flow-foto-preview-img');
+            const btnQuitar = document.getElementById('flow-btn-quitar-foto');
+
+            if (fotoInput && fotoInput.files && fotoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    if (prevImg) prevImg.src = ev.target.result;
+                    if (prevBox) prevBox.style.display = 'block';
+                    if (btnQuitar) btnQuitar.style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(fotoInput.files[0]);
+            } else {
+                if (prevBox) prevBox.style.display = 'none';
+                if (btnQuitar) btnQuitar.style.display = 'none';
+            }
+            validarFormularioFlujoCreacion();
+        }
+
+        function quitarFotoFlujoCreacion() {
+            const fotoInput = document.getElementById('flow-input-foto');
+            const prevBox = document.getElementById('flow-foto-preview-box');
+            const prevImg = document.getElementById('flow-foto-preview-img');
+            const btnQuitar = document.getElementById('flow-btn-quitar-foto');
+
+            if (fotoInput) fotoInput.value = '';
+            if (prevImg) prevImg.src = '';
+            if (prevBox) prevBox.style.display = 'none';
+            if (btnQuitar) btnQuitar.style.display = 'none';
+            validarFormularioFlujoCreacion();
+        }
+
+        // Cancelación segura desde cualquier vista del flujo: pide confirmación, limpia temporales y vuelve a la pantalla principal
+        function solicitarCancelacionFlujoCreacion(pedirConfirmacion = true) {
+            let requiereConfirmar = pedirConfirmacion === true;
+            if (pedirConfirmacion === 'auto') {
+                const inpPres = (document.getElementById('flow-input-presentacion')?.value || '').trim();
+                const inpDiap = (document.getElementById('flow-input-diapositiva')?.value || '').trim();
+                const inpFoto = document.getElementById('flow-input-foto');
+                const hayDatos = Boolean(inpPres || inpDiap || (inpFoto && inpFoto.files && inpFoto.files.length > 0));
+                requiereConfirmar = hayDatos;
+            }
+
+            if (requiereConfirmar) {
+                const confirmar = confirm(
+                    "⚠️ ¿Estás seguro de que deseas cancelar y detener el proceso?\n\nSe limpiarán los datos y archivos temporales generados en esta sesión y regresarás a la pantalla principal."
+                );
+                if (!confirmar) return;
+            }
+            detenerTimersFlujoCreacion();
+            flujoCreacionSM.reset();
+            limpiarCamposDOMFlujoCreacion();
+        }
+
+        function copiarTextoSistemaAPersonalizado() {
+            const txtSistema = document.getElementById('flow-textarea-sistema');
+            const txtProg = document.getElementById('flow-textarea-programador');
+            if (txtSistema && txtProg) {
+                txtProg.value = txtSistema.value;
+                txtProg.focus();
+            }
+        }
+
+        function actualizarBarraCargaMindFlujo(porcentaje, subtituloHtml) {
+            const bar = document.getElementById('flow-mind-progress-bar');
+            const pct = document.getElementById('flow-mind-progress-pct');
+            const sub = document.getElementById('flow-mind-loading-subtitle');
+            const p = Math.min(100, Math.max(0, Math.round(porcentaje)));
+            if (bar) bar.style.width = p + '%';
+            if (pct) pct.textContent = p + '%';
+            if (sub && subtituloHtml) sub.innerHTML = subtituloHtml;
+        }
+
+        // Paso 2: Pantalla de carga 1 (Generación de archivo .mind + Análisis de la diapositiva)
+        async function confirmarFormularioEIniciarMind() {
+            if (flujoCreacionSM.getState() !== 'form') return;
+            if (!validarFormularioFlujoCreacion()) {
+                alert("Completa todos los campos requeridos antes de continuar.");
+                return;
+            }
+
+            const nombrePres = document.getElementById('flow-input-presentacion').value.trim();
+            const nombreDiap = document.getElementById('flow-input-diapositiva').value.trim();
+            const archivoFoto = document.getElementById('flow-input-foto').files[0];
+            const nombreArchivoMind = construirNombreArchivoMind(nombrePres, nombreDiap);
+
+            const runIdActual = (flujoCreacionSM.getContext().runId || 0) + 1;
+            flujoCreacionSM.transitionTo('loading_mind', {
+                runId: runIdActual,
+                nombrePresentacion: nombrePres,
+                nombreDiapositiva: nombreDiap,
+                archivoFoto,
+                nombreArchivoMind
+            });
+
+            actualizarBarraCargaMindFlujo(
+                5,
+                `Compilando patrón de reconocimiento <code>${escaparHTML(nombreArchivoMind)}</code> y analizando contenido visual de la diapositiva...`
+            );
+
+            try {
+                // Ejecutar compilación del archivo .mind con actualización de barra de progreso en la vista loading_mind
+                const mindPromise = (async () => {
+                    const reader = new FileReader();
+                    const dataUrl = await new Promise((res, rej) => {
+                        reader.onload = (e) => res(e.target.result);
+                        reader.onerror = rej;
+                        reader.readAsDataURL(archivoFoto);
+                    });
+                    const imgObj = await new Promise((res, rej) => {
+                        const im = new Image();
+                        im.onload = () => res(im);
+                        im.onerror = rej;
+                        im.src = dataUrl;
+                    });
+
+                    const rawW = imgObj.naturalWidth || imgObj.width || 640;
+                    const rawH = imgObj.naturalHeight || imgObj.height || 480;
+                    const maxDim = 540;
+                    let targetW = rawW;
+                    let targetH = rawH;
+                    if (rawW > maxDim || rawH > maxDim) {
+                        if (rawW >= rawH) {
+                            targetW = maxDim;
+                            targetH = Math.max(120, Math.round((rawH * maxDim) / rawW));
+                        } else {
+                            targetH = maxDim;
+                            targetW = Math.max(120, Math.round((rawW * maxDim) / rawH));
+                        }
+                    }
+
+                    const canvasNorm = document.createElement('canvas');
+                    canvasNorm.width = targetW;
+                    canvasNorm.height = targetH;
+                    const ctx2d = canvasNorm.getContext('2d');
+                    ctx2d.drawImage(imgObj, 0, 0, targetW, targetH);
+
+                    const imgData = ctx2d.getImageData(0, 0, targetW, targetH).data;
+                    const greyData = new Uint8Array(targetW * targetH);
+                    for (let i = 0; i < greyData.length; i++) {
+                        const off = i * 4;
+                        greyData[i] = Math.floor((imgData[off] + imgData[off + 1] + imgData[off + 2]) / 3);
+                    }
+
+                    const exportedBuffer = await window.MindCompilerCPU.compileImageToMindBuffer(
+                        { data: greyData, width: targetW, height: targetH },
+                        (progreso) => {
+                            if (flujoCreacionSM.getContext().runId !== runIdActual) return;
+                            actualizarBarraCargaMindFlujo(
+                                Math.min(92, Math.round(progreso * 0.9)),
+                                `Generando archivo <code>${escaparHTML(nombreArchivoMind)}</code> y detectando características de la diapositiva...`
+                            );
+                        }
+                    );
+
+                    return new File([exportedBuffer], nombreArchivoMind, {
+                        type: 'application/octet-stream'
+                    });
+                })();
+
+                const analisisPromise = window.SlideCreatorEngine.SlideAnalyzerEngine.analizarDiapositiva(
+                    archivoFoto,
+                    nombrePres,
+                    nombreDiap
+                );
+
+                const [mindFileGenerado, resultadoAnalisis] = await Promise.all([mindPromise, analisisPromise]);
+
+                // Verificar que el flujo no haya sido cancelado mientras cargaba
+                if (flujoCreacionSM.getContext().runId !== runIdActual || flujoCreacionSM.getState() !== 'loading_mind') {
+                    return;
+                }
+
+                actualizarBarraCargaMindFlujo(100, `¡Archivo <code>${escaparHTML(nombreArchivoMind)}</code> y análisis completados!`);
+
+                const indiceInicialVariante = window.SlideCreatorEngine.SlideAnimationGenerator.determinarIndiceInicialPorDominio(
+                    resultadoAnalisis.dominioId
+                );
+
+                timerTransicionMindId = setTimeout(() => {
+                    timerTransicionMindId = null;
+                    if (flujoCreacionSM.getContext().runId !== runIdActual || flujoCreacionSM.getState() !== 'loading_mind') {
+                        return;
+                    }
+
+                    // Poblar los 2 cuadros de texto de la vista review_mind:
+                    // Cuadro 1: Descripción generada por el sistema
+                    // Cuadro 2: Cuadro editable para que el programador escriba o corrija si la del sistema no es correcta
+                    const fileLabel = document.getElementById('flow-review-mind-filename');
+                    const thumbEl = document.getElementById('flow-review-thumb');
+                    const txtSistema = document.getElementById('flow-textarea-sistema');
+                    const txtProg = document.getElementById('flow-textarea-programador');
+
+                    if (fileLabel) fileLabel.textContent = nombreArchivoMind;
+                    if (thumbEl) thumbEl.src = resultadoAnalisis.fotoDataUrl || '';
+                    if (txtSistema) txtSistema.value = resultadoAnalisis.analisisSistema;
+                    if (txtProg) txtProg.value = '';
+
+                    flujoCreacionSM.transitionTo('review_mind', {
+                        mindFile: mindFileGenerado,
+                        fotoDataUrl: resultadoAnalisis.fotoDataUrl,
+                        analisisSistema: resultadoAnalisis.analisisSistema,
+                        descripcionEditableSugerida: resultadoAnalisis.descripcionEditableSugerida,
+                        temaDetectado: resultadoAnalisis.temaDetectado,
+                        conceptosClave: resultadoAnalisis.conceptosClave,
+                        pasosFlujo: resultadoAnalisis.pasosFlujo,
+                        metricasVisuales: resultadoAnalisis.metricasVisuales,
+                        varianteIndex: indiceInicialVariante
+                    });
+                }, 260);
+            } catch (err) {
+                console.error("Error durante la creación del archivo .mind o análisis:", err);
+                alert("Ocurrió un error al procesar la imagen de la diapositiva. Intenta con otra imagen .PNG o .JPG.");
+                flujoCreacionSM.transitionTo('form');
+            }
+        }
+
+        // Paso 3 -> Paso 4: Confirmar contenido de la diapositiva y pasar a Pantalla de carga 2 (Creación de animación)
+        // Si el programador escribió/editó en el segundo cuadro, se guarda el texto editado; si no se modificó, se guarda el del sistema.
+        function confirmarContenidoYGenerarAnimacion() {
+            if (flujoCreacionSM.getState() !== 'review_mind') return;
+
+            const txtProg = document.getElementById('flow-textarea-programador');
+            const txtSistema = document.getElementById('flow-textarea-sistema');
+            const textoProgramador = (txtProg && txtProg.value ? txtProg.value : '').trim();
+            const textoSistema = (txtSistema && txtSistema.value ? txtSistema.value : (flujoCreacionSM.getContext().analisisSistema || '')).trim();
+
+            const huboEdicionProgramador = textoProgramador.length > 0 && textoProgramador !== textoSistema;
+            const descripcionDefinitiva = huboEdicionProgramador ? textoProgramador : textoSistema;
+
+            if (!descripcionDefinitiva) {
+                alert("No hay información de contenido para la diapositiva.");
+                return;
+            }
+
+            flujoCreacionSM.updateContext({
+                descripcionConfirmada: descripcionDefinitiva,
+                fueEditadaPorProgramador: huboEdicionProgramador
+            });
+
+            ejecutarCargaYGeneracionAnimacion(false);
+        }
+
+        // Paso 4 -> Paso 5: Pantalla de carga 2 (Creación de animación) -> Previsualización y selección
+        function ejecutarCargaYGeneracionAnimacion(incrementarVariante = false) {
+            detenerTimersFlujoCreacion();
+            const ctx = flujoCreacionSM.getContext();
+            const runIdActual = ctx.runId;
+            const nuevoIndice = incrementarVariante ? (ctx.varianteIndex + 1) : ctx.varianteIndex;
+
+            flujoCreacionSM.transitionTo('loading_animation', {
+                varianteIndex: nuevoIndice
+            });
+
+            const bar = document.getElementById('flow-anim-progress-bar');
+            const pct = document.getElementById('flow-anim-progress-pct');
+            const sub = document.getElementById('flow-anim-loading-subtitle');
+
+            const etapas = [
+                { p: 25, msg: 'Interpretando la descripción confirmada y extrayendo conceptos clave...' },
+                { p: 60, msg: 'Construyendo geometrías 3D, iluminación y paneles holográficos A-Frame...' },
+                { p: 90, msg: 'Compilando animaciones a 60 FPS y preparando escenario interactivo...' },
+                { p: 100, msg: '¡Animación 3D generada correctamente!' }
+            ];
+
+            let paso = 0;
+            timerCargaAnimacionId = setInterval(() => {
+                if (flujoCreacionSM.getContext().runId !== runIdActual || flujoCreacionSM.getState() !== 'loading_animation') {
+                    detenerTimersFlujoCreacion();
+                    return;
+                }
+                const etapa = etapas[paso];
+                if (etapa) {
+                    if (bar) bar.style.width = etapa.p + '%';
+                    if (pct) pct.textContent = etapa.p + '%';
+                    if (sub) sub.textContent = etapa.msg;
+                }
+                paso++;
+                if (paso >= etapas.length) {
+                    detenerTimersFlujoCreacion();
+                    try {
+                        const resultado3D = window.SlideCreatorEngine.SlideAnimationGenerator.generarAnimacion3D(
+                            flujoCreacionSM.getContext(),
+                            flujoCreacionSM.getContext().descripcionConfirmada,
+                            nuevoIndice
+                        );
+
+                        const varTitle = document.getElementById('flow-anim-variant-title');
+                        const varDesc = document.getElementById('flow-anim-variant-desc');
+                        const codeBox = document.getElementById('flow-anim-code-box');
+                        const iframe = document.getElementById('flow-anim-preview-iframe');
+
+                        if (varTitle) varTitle.textContent = resultado3D.nombreVariante;
+                        if (varDesc) varDesc.textContent = resultado3D.descripcionVariante;
+                        if (codeBox) codeBox.value = resultado3D.codigoAnimacion;
+                        if (iframe) iframe.srcdoc = construirHtmlEscenaPrueba(resultado3D.codigoAnimacion);
+
+                        flujoCreacionSM.transitionTo('select_animation', {
+                            codigoAnimacionGenerado: resultado3D.codigoAnimacion,
+                            nombreVarianteActual: resultado3D.nombreVariante,
+                            varianteIndex: resultado3D.varianteIndex
+                        });
+                    } catch (errGen) {
+                        console.error("Error generando animación 3D:", errGen);
+                        alert("Error al generar la vista previa de la animación.");
+                        flujoCreacionSM.transitionTo('review_mind');
+                    }
+                }
+            }, 260);
+        }
+
+        // En select_animation: "Crear otra animación" vuelve a la pantalla de carga 2 y genera una nueva variante
+        function generarOtraAnimacionEnFlujo() {
+            if (flujoCreacionSM.getState() !== 'select_animation') return;
+            ejecutarCargaYGeneracionAnimacion(true);
+        }
+
+        function actualizarPreviewDesdeCodigoFlujo() {
+            const codeBox = document.getElementById('flow-anim-code-box');
+            const iframe = document.getElementById('flow-anim-preview-iframe');
+            if (!codeBox || !iframe) return;
+            const codigo = codeBox.value.trim();
+            if (!codigo) return;
+            flujoCreacionSM.updateContext({ codigoAnimacionGenerado: codigo });
+            iframe.srcdoc = construirHtmlEscenaPrueba(codigo);
+        }
+
+        // Paso 5 -> Paso 6: Confirmar animación (pide confirmación) y pasar a Pantalla de implementación
+        async function confirmarSeleccionAnimacionEImplementar() {
+            if (flujoCreacionSM.getState() !== 'select_animation') return;
+
+            const codeBox = document.getElementById('flow-anim-code-box');
+            const codigoFinal = (codeBox && codeBox.value ? codeBox.value : flujoCreacionSM.getContext().codigoAnimacionGenerado || '').trim();
+            if (!codigoFinal) {
+                alert("El código de la animación no puede estar vacío.");
+                return;
+            }
+
+            if (!confirm("¿Estás seguro de confirmar esta animación 3D e implementar la diapositiva en el catálogo activo de reconocimiento?")) {
+                return;
+            }
+
+            flujoCreacionSM.transitionTo('implementing', {
+                codigoAnimacionGenerado: codigoFinal
+            });
+
+            const step1 = document.getElementById('flow-impl-step-1');
+            const step2 = document.getElementById('flow-impl-step-2');
+            const step3 = document.getElementById('flow-impl-step-3');
+            if (step1) { step1.textContent = '⏳ 1. Almacenando captura y archivo .mind en Modelos_AR/...'; step1.style.color = 'var(--uabc-blue)'; }
+            if (step2) { step2.textContent = '⏳ 2. Vinculando descripción confirmada y animación 3D en diapositivas.json...'; step2.style.color = 'var(--text-muted)'; }
+            if (step3) { step3.textContent = '⏳ 3. Activando target de reconocimiento en tiempo real para el módulo de cámara...'; step3.style.color = 'var(--text-muted)'; }
+
+            const ctx = flujoCreacionSM.getContext();
+            const sesionAutor = obtenerSesionActual();
+            const formData = new FormData();
+            formData.append('nombrePresentacion', ctx.nombrePresentacion);
+            formData.append('nombreDiapositiva', ctx.nombreDiapositiva);
+            formData.append('descripcionDiapositiva', ctx.descripcionConfirmada);
+            formData.append('analisisSistema', ctx.analisisSistema);
+            formData.append('foto', ctx.archivoFoto);
+            formData.append('mindFile', ctx.mindFile);
+            formData.append('codigoAnimacion', ctx.codigoAnimacionGenerado);
+            formData.append('usuarioAutor', sesionAutor ? sesionAutor.usuario : 'admin');
+            formData.append('nombreAutor', sesionAutor ? sesionAutor.nombre : 'Administrador General');
+            formData.append('fechaHora', new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }));
+
+            try {
+                const response = await fetch('/api/upload-animacion', {
+                    method: 'POST',
+                    headers: construirHeadersAuth(),
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errTxt = await response.text().catch(() => 'Error en el servidor');
+                    throw new Error(errTxt || 'Error guardando diapositiva');
+                }
+
+                if (step1) { step1.textContent = '✅ 1. Captura y archivo .mind almacenados en Modelos_AR/'; step1.style.color = 'var(--uabc-green)'; }
+                if (step2) { step2.textContent = '✅ 2. Descripción confirmada y animación 3D registradas en diapositivas.json'; step2.style.color = 'var(--uabc-green)'; }
+
+                // Actualizar fuente de datos del catálogo en caliente y notificar al módulo de cámara
+                await cargarDatos();
+                notificarActualizacionCatalogoACamara();
+
+                if (step3) { step3.textContent = '✅ 3. Target registrado y activo en el módulo de cámara AR'; step3.style.color = 'var(--uabc-green)'; }
+
+                setTimeout(() => {
+                    if (flujoCreacionSM.getState() !== 'implementing') return;
+
+                    document.getElementById('flow-done-pres').textContent = ctx.nombrePresentacion;
+                    document.getElementById('flow-done-diap').textContent = ctx.nombreDiapositiva;
+                    document.getElementById('flow-done-mind').textContent = `Modelos_AR/${ctx.nombreArchivoMind}`;
+                    document.getElementById('flow-done-desc').textContent = ctx.descripcionConfirmada;
+
+                    flujoCreacionSM.transitionTo('completed');
+                }, 420);
+            } catch (err) {
+                console.error("Error implementando la diapositiva:", err);
+                alert("No se pudo implementar la diapositiva en el servidor: " + (err.message || "Verifica que node server.js esté activo."));
+                flujoCreacionSM.transitionTo('select_animation');
+            }
+        }
+
+        function notificarActualizacionCatalogoACamara() {
+            try {
+                localStorage.setItem('ayudantia_ar_last_update', Date.now().toString());
+            } catch (e) {}
+            if (typeof BroadcastChannel !== 'undefined') {
+                try {
+                    const canal = new BroadcastChannel('ayudantia_ar_sync');
+                    canal.postMessage({
+                        tipo: 'CATALOGO_ACTUALIZADO',
+                        timestamp: Date.now()
+                    });
+                    canal.close();
+                } catch (e) {}
+            }
+        }
+
+        // Paso 7: Botón Aceptar -> cierra el flujo, reinicia estados temporales y regresa a la pantalla principal
+        function finalizarFlujoYRegresarAPrincipal() {
+            flujoCreacionSM.reset();
+            limpiarCamposDOMFlujoCreacion();
+            cargarDatos();
         }
 
         // Iniciar

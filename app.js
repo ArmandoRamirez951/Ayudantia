@@ -72,14 +72,97 @@ document.addEventListener("DOMContentLoaded", () => {
         return URL.createObjectURL(blob);
     }
 
-    function iniciarMindARConTarget(targetSrcUrl) {
-        const arrancar = () => {
+    let firmaCatalogoActual = '';
+    let firmaTargetsMindActual = '';
+    let urlBlobMindActual = null;
+    let recargandoTargets = false;
+    let recargaPendiente = false;
+
+    function calcularFirmaCatalogo(lista) {
+        return JSON.stringify(
+            lista.map(d => ({
+                id: d.id,
+                mindFile: d.mindFile,
+                fecha: d.fechaActualizacion || d.fechaCreacion || '',
+                len: (d.codigoAnimacion || '').length
+            }))
+        );
+    }
+
+    function calcularFirmaTargetsMind(lista) {
+        return JSON.stringify(
+            lista.map(d => ({
+                id: d.id,
+                mindFile: d.mindFile
+            }))
+        );
+    }
+
+    function aplicarEntidadesTargetEnEscena(lista) {
+        // 1. Primera diapositiva en #ar-content (targetIndex: 0)
+        const primeraDiapo = lista[0];
+        if (arContent && primeraDiapo && primeraDiapo.codigoAnimacion) {
+            arContent.setAttribute('visible', 'false');
+            arContent.innerHTML = primeraDiapo.codigoAnimacion;
+        }
+
+        // 2. Diapositivas adicionales (targetIndex: 1, 2, 3, ...)
+        for (let i = 1; i < lista.length; i++) {
+            const diapoExtra = lista[i];
+            let extraEntity = document.getElementById(`ar-content-${i}`);
+            if (!extraEntity) {
+                extraEntity = document.createElement('a-entity');
+                extraEntity.setAttribute('id', `ar-content-${i}`);
+                extraEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
+                extraEntity.setAttribute('visible', 'false');
+                sceneEl.appendChild(extraEntity);
+            }
+            extraEntity.innerHTML = diapoExtra.codigoAnimacion;
+        }
+
+        // 3. Limpiar entidades sobrantes si se eliminó alguna diapositiva
+        const todosTargets = sceneEl.querySelectorAll('[mindar-image-target]');
+        todosTargets.forEach((el) => {
+            if (el.id && el.id.startsWith('ar-content-')) {
+                const idx = parseInt(el.id.replace('ar-content-', ''), 10);
+                if (!isNaN(idx) && idx >= lista.length) {
+                    el.remove();
+                }
+            }
+        });
+
+        // 4. Purgar referencias desconectadas en mindar-image-system
+        const mindarSystem = sceneEl.systems && sceneEl.systems['mindar-image-system'];
+        if (mindarSystem && Array.isArray(mindarSystem.anchorEntities)) {
+            mindarSystem.anchorEntities = mindarSystem.anchorEntities.filter(
+                item => item && item.el && item.el.isConnected
+            );
+        }
+    }
+
+    function iniciarMindARConTarget(targetSrcUrl, esActualizacionEnVivo = false) {
+        const arrancar = async () => {
             try {
+                const mindarSystem = sceneEl.systems && sceneEl.systems['mindar-image-system'];
+                if (
+                    esActualizacionEnVivo &&
+                    mindarSystem &&
+                    mindarSystem.controller &&
+                    mindarSystem.video &&
+                    mindarSystem.video.srcObject
+                ) {
+                    try {
+                        mindarSystem.stop();
+                    } catch (eStop) {
+                        console.warn("Aviso al detener MindAR para actualizar targets:", eStop);
+                    }
+                }
+
                 sceneEl.setAttribute(
                     'mindar-image',
                     `imageTargetSrc: ${targetSrcUrl}; autoStart: false; uiScanning: no; uiLoading: no;`
                 );
-                const mindarSystem = sceneEl.systems && sceneEl.systems['mindar-image-system'];
+
                 if (mindarSystem) {
                     mindarSystem.imageTargetSrc = targetSrcUrl;
                     setTimeout(() => {
@@ -88,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         } catch (errStart) {
                             console.error("Error al iniciar MindAR:", errStart);
                         }
-                    }, 80);
+                    }, 90);
                 }
             } catch (e) {
                 console.error("Error configurando MindAR:", e);
@@ -102,54 +185,101 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Cargar todas las diapositivas desde el JSON de la base de datos
-    fetch('diapositivas.json?t=' + Date.now())
-        .then(response => response.json())
-        .then(async data => {
+    // Carga o actualiza en caliente todas las diapositivas desde diapositivas.json sin requerir recarga manual
+    async function sincronizarCatalogoDiapositivas(esActualizacionEnVivo = false) {
+        if (recargandoTargets) {
+            recargaPendiente = true;
+            return;
+        }
+        recargandoTargets = true;
+        try {
+            const response = await fetch('diapositivas.json?t=' + Date.now(), { cache: 'no-store' });
+            const data = await response.json();
             const lista = (data && Array.isArray(data.diapositivas))
                 ? data.diapositivas.filter(d => d && d.mindFile && d.codigoAnimacion)
                 : [];
 
-            // Si se borraron todas las diapositivas, evitar fallo por undefined
+            const nuevaFirma = calcularFirmaCatalogo(lista);
+            if (esActualizacionEnVivo && nuevaFirma === firmaCatalogoActual) {
+                return;
+            }
+            const nuevaFirmaTargets = calcularFirmaTargetsMind(lista);
+            const cambiaronTargetsMind = !esActualizacionEnVivo || (nuevaFirmaTargets !== firmaTargetsMindActual);
+
+            firmaCatalogoActual = nuevaFirma;
+            firmaTargetsMindActual = nuevaFirmaTargets;
+
             if (lista.length === 0) {
                 console.warn("No hay diapositivas registradas en diapositivas.json");
                 if (scannerText) {
                     scannerText.innerHTML = `
                         <h2>📷 Sin Diapositivas Activas</h2>
-                        <p>Agrega una diapositiva con su archivo .mind desde el panel de administración</p>
+                        <p>Crea una diapositiva con su archivo .mind desde el panel de administración</p>
                     `;
                 }
                 return;
             }
 
-            // 1. Primera diapositiva en #ar-content (targetIndex: 0)
-            const primeraDiapo = lista[0];
-            if (arContent && primeraDiapo.codigoAnimacion) {
-                arContent.setAttribute('visible', 'false');
-                arContent.innerHTML = primeraDiapo.codigoAnimacion;
+            if (scannerText && esActualizacionEnVivo) {
+                scannerText.innerHTML = `
+                    <h2>📷 Escanea la Diapositiva</h2>
+                    <p>Catálogo actualizado (${lista.length} diapositiva(s) activas)</p>
+                `;
             }
 
-            // 2. Diapositivas adicionales (targetIndex: 1, 2, 3, 4, ...)
-            for (let i = 1; i < lista.length; i++) {
-                const diapoExtra = lista[i];
-                let extraEntity = document.getElementById(`ar-content-${i}`);
-                if (!extraEntity) {
-                    extraEntity = document.createElement('a-entity');
-                    extraEntity.setAttribute('id', `ar-content-${i}`);
-                    extraEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
-                    extraEntity.setAttribute('visible', 'false');
-                    sceneEl.appendChild(extraEntity);
+            aplicarEntidadesTargetEnEscena(lista);
+
+            if (cambiaronTargetsMind) {
+                const prevBlobUrl = urlBlobMindActual;
+                const targetUrl = await construirUrlMindMultiTarget(lista);
+                urlBlobMindActual = targetUrl;
+                iniciarMindARConTarget(targetUrl, esActualizacionEnVivo);
+                if (prevBlobUrl && prevBlobUrl.startsWith('blob:')) {
+                    setTimeout(() => {
+                        try { URL.revokeObjectURL(prevBlobUrl); } catch (e) {}
+                    }, 1500);
                 }
-                extraEntity.innerHTML = diapoExtra.codigoAnimacion;
             }
 
-            // 3. Construir el archivo .mind (individual o combinado) e iniciar la cámara AR
-            const targetUrl = await construirUrlMindMultiTarget(lista);
-            iniciarMindARConTarget(targetUrl);
+            console.log(`Animaciones 3D sincronizadas (${lista.length} diapositiva(s))`);
+        } catch (err) {
+            console.error("Error sincronizando diapositivas.json:", err);
+        } finally {
+            recargandoTargets = false;
+            if (recargaPendiente) {
+                recargaPendiente = false;
+                sincronizarCatalogoDiapositivas(true);
+            }
+        }
+    }
 
-            console.log(`Animaciones 3D cargadas desde la base de datos (${lista.length} diapositiva(s))`);
-        })
-        .catch(err => console.error("Error cargando JSON:", err));
+    // Carga inicial al abrir camara.html
+    sincronizarCatalogoDiapositivas(false);
+
+    // Escuchar notificaciones inmediatas cuando se implementa una nueva diapositiva desde programacion.html
+    if (typeof BroadcastChannel !== 'undefined') {
+        try {
+            const canalSync = new BroadcastChannel('ayudantia_ar_sync');
+            canalSync.onmessage = (ev) => {
+                if (ev && ev.data && ev.data.tipo === 'CATALOGO_ACTUALIZADO') {
+                    sincronizarCatalogoDiapositivas(true);
+                }
+            };
+        } catch (e) {}
+    }
+
+    window.addEventListener('storage', (ev) => {
+        if (ev.key === 'ayudantia_ar_last_update') {
+            sincronizarCatalogoDiapositivas(true);
+        }
+    });
+
+    // Verificación periódica ligera para dispositivos móviles en red local
+    setInterval(() => {
+        if (!document.hidden) {
+            sincronizarCatalogoDiapositivas(true);
+        }
+    }, 4500);
 
     // Motor de cambio de color dinámico para los textos 3D del Método Científico
     let hueCromatico = 180;
