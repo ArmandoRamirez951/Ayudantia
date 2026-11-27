@@ -1724,36 +1724,42 @@
                         <img id="flow-review-thumb" alt="Miniatura" style="height: 54px; width: 92px; object-fit: cover; border-radius: 8px; border: 2px solid var(--uabc-gold); background: #0f172a;">
                     </div>
 
-                    <!-- Dos cuadros de texto: 1. Lo que arroja el sistema | 2. Editable por el programador -->
+                    <!-- Dos cuadros de texto: 1. Lo que arroja el sistema | 2. Editable por el programador controlado por casilla -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
                         <!-- Cuadro 1: De qué trata la diapositiva según el sistema -->
                         <div class="form-group" style="display: flex; flex-direction: column;">
-                            <label style="color: var(--uabc-blue); font-size: 0.9rem; font-weight: 700;">
-                                🤖 1. ¿De qué trata la diapositiva? (Análisis arrojado por el sistema)
-                            </label>
-                            <span style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
-                                Información detectada automáticamente al analizar la captura de la diapositiva:
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <label id="flow-label-sistema" style="color: var(--uabc-blue); font-size: 0.9rem; font-weight: 700; transition: color 0.2s;">
+                                    🤖 1. Análisis detallado del sistema
+                                </label>
+                                <span id="flow-badge-estado-sistema" style="font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: #dcfce7; color: var(--uabc-green); border: 1px solid #86efac;">
+                                    ● ACTIVO (Se usará al confirmar)
+                                </span>
+                            </div>
+                            <span id="flow-hint-sistema" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                                Tema principal, subtemas, datos clave, elementos visuales y propósito detectados en la diapositiva:
                             </span>
                             <textarea id="flow-textarea-sistema" readonly
-                                style="flex: 1; min-height: 235px; background: #f8fafc; color: #1e293b; border: 2px solid #94a3b8; border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.88rem; line-height: 1.55; resize: vertical;"></textarea>
+                                style="flex: 1; min-height: 255px; background: #ffffff; color: #0f172a; border: 2px solid var(--uabc-blue); border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.85rem; line-height: 1.55; resize: vertical; transition: all 0.22s ease;"></textarea>
                         </div>
 
-                        <!-- Cuadro 2: Cuadro editable para que el programador escriba o corrija lo que quiere decir la diapositiva -->
+                        <!-- Cuadro 2: Cuadro editable controlado por casilla (checkbox) -->
                         <div class="form-group" style="display: flex; flex-direction: column;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                <label style="color: var(--uabc-green); font-size: 0.9rem; font-weight: 700;">
-                                    ✏️ 2. Contenido definitivo (Escribe o corrige lo que quiere decir la diapositiva)
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; background: #f8fafc; border: 1px solid var(--border-strong); padding: 7px 12px; border-radius: 10px;">
+                                <label for="flow-checkbox-info-manual" style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--uabc-blue); font-size: 0.84rem; font-weight: 700; margin: 0; user-select: none;">
+                                    <input type="checkbox" id="flow-checkbox-info-manual" onchange="alternarModoEdicionManualContenido(this.checked)" style="width: 17px; height: 17px; accent-color: var(--uabc-green); cursor: pointer; margin: 0;">
+                                    <span>Ingresar información manual (ignorar análisis del sistema)</span>
                                 </label>
-                                <button type="button" class="btn" onclick="copiarTextoSistemaAPersonalizado()" style="padding: 3px 9px; font-size: 0.73rem;">
-                                    📋 Copiar del sistema
+                                <button type="button" class="btn" id="flow-btn-copiar-sistema" onclick="copiarTextoSistemaAPersonalizado()" disabled style="padding: 3px 9px; font-size: 0.72rem; opacity: 0.5; cursor: not-allowed;">
+                                    📋 Copiar base
                                 </button>
                             </div>
-                            <span style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
-                                Si la descripción del sistema es correcta puedes dejarlo así o editar aquí lo que realmente quiere decir la diapositiva:
+                            <span id="flow-hint-programador" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">
+                                Casilla desmarcada: este cuadro está bloqueado y se utilizará el análisis detallado del sistema. Marca la casilla para habilitarlo.
                             </span>
-                            <textarea id="flow-textarea-programador"
-                                placeholder="Escribe o corrige aquí lo que quiere decir la diapositiva (si no realizas cambios, al confirmar se guardará la descripción generada por el sistema)..."
-                                style="flex: 1; min-height: 235px; background: #ffffff; color: #0f172a; border: 2px solid var(--uabc-green); border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.9rem; line-height: 1.55; resize: vertical;"></textarea>
+                            <textarea id="flow-textarea-programador" disabled readonly
+                                placeholder="Marca la casilla superior 'Ingresar información manual (ignorar análisis del sistema)' para habilitar este cuadro y escribir el contenido personalizado de la diapositiva..."
+                                style="flex: 1; min-height: 255px; background: #f1f5f9; color: #94a3b8; border: 2px solid #cbd5e1; border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif; font-size: 0.88rem; line-height: 1.55; resize: vertical; cursor: not-allowed; transition: all 0.22s ease;"></textarea>
                         </div>
                     </div>
                 </div>
@@ -1866,27 +1872,49 @@
             <!-- ==============================================================
                  ESTADO 7: COMPLETED (Confirmación final y disponibilidad en cámara)
                  ============================================================== -->
-            <div id="flow-view-completed" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1; padding: 30px 20px; text-align: center;">
-                <div style="width: 78px; height: 78px; border-radius: 50%; background: #ecfdf5; border: 3px solid var(--uabc-green); display: flex; align-items: center; justify-content: center; font-size: 2.3rem; box-shadow: 0 12px 24px rgba(0, 132, 61, 0.2);">
+            <div id="flow-view-completed" class="flow-step-panel" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; flex: 1; padding: 16px 12px; text-align: center; max-width: 100%; overflow: hidden;">
+                <div style="width: 66px; height: 66px; border-radius: 50%; background: #ecfdf5; border: 3px solid var(--uabc-green); display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 10px 22px rgba(0, 132, 61, 0.2); flex-shrink: 0;">
                     ✅
                 </div>
-                <h3 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--uabc-green);">
+                <h3 style="margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.42rem; font-weight: 800; color: var(--uabc-green);">
                     ¡Proceso finalizado correctamente!
                 </h3>
-                <p style="margin: 0; max-width: 620px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.55;">
+                <p style="margin: 0; max-width: 650px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
                     La nueva diapositiva, su patrón de reconocimiento <code>.mind</code>, la descripción confirmada y su animación 3D han quedado implementados y <strong>activos de inmediato</strong> para ser escaneados con la cámara.
                 </p>
 
-                <div style="background: #f8fafc; border: 1px solid var(--border-strong); border-left: 5px solid var(--uabc-green); border-radius: 12px; padding: 16px 22px; width: 100%; max-width: 580px; text-align: left; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem;">
-                    <div><strong>📂 Presentación:</strong> <span id="flow-done-pres">-</span></div>
-                    <div><strong>🖼️ Diapositiva:</strong> <span id="flow-done-diap">-</span></div>
-                    <div><strong>🎯 Archivo Target (.mind):</strong> <code id="flow-done-mind" style="color: var(--uabc-green); font-weight: 700;">-</code></div>
-                    <div><strong>📝 Descripción confirmada:</strong> <span id="flow-done-desc" style="color: var(--text-secondary);">-</span></div>
-                    <div><strong>📷 Estado en Cámara AR:</strong> <span style="color: var(--uabc-green); font-weight: 800;">● Activa y lista para escanear sin recargar</span></div>
+                <!-- Contenedor del resumen estrictamente acotado sin desbordamientos horizontales ni verticales -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-strong); border-left: 5px solid var(--uabc-green); border-radius: 14px; padding: 16px 20px; width: 100%; max-width: 720px; box-sizing: border-box; overflow: hidden; text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 0.87rem; box-shadow: var(--shadow-sm);">
+                    <!-- Fila superior con miniatura contenida y metadatos con ajuste de línea -->
+                    <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; width: 100%; box-sizing: border-box;">
+                        <img id="flow-done-thumb" alt="Diapositiva implementada" style="width: 120px; height: 74px; object-fit: cover; border-radius: 8px; border: 2px solid var(--uabc-gold); background: #0f172a; flex-shrink: 0; display: none;">
+                        <div style="flex: 1; min-width: 220px; max-width: 100%; display: flex; flex-direction: column; gap: 6px; overflow: hidden;">
+                            <div style="word-break: break-word; overflow-wrap: anywhere;">
+                                <strong>📂 Presentación:</strong> <span id="flow-done-pres">-</span>
+                            </div>
+                            <div style="word-break: break-word; overflow-wrap: anywhere;">
+                                <strong>🖼️ Diapositiva:</strong> <span id="flow-done-diap">-</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 3px; max-width: 100%;">
+                                <strong>🎯 Archivo Target (.mind):</strong>
+                                <code id="flow-done-mind" style="display: block; width: 100%; box-sizing: border-box; background: #ecfdf5; color: var(--uabc-green); border: 1px solid #a7f3d0; padding: 5px 9px; border-radius: 6px; font-weight: 700; font-size: 0.79rem; word-break: break-all; overflow-wrap: anywhere; white-space: normal;">-</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuadro de descripción confirmada con límite de altura y scroll interno limpio -->
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; box-sizing: border-box;">
+                        <strong>📝 Descripción confirmada:</strong>
+                        <div id="flow-done-desc" style="width: 100%; max-height: 135px; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; color: var(--text-secondary); font-size: 0.82rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;">-</div>
+                    </div>
+
+                    <div style="padding-top: 4px; border-top: 1px dashed var(--border-color); word-break: break-word;">
+                        <strong>📷 Estado en Cámara AR:</strong> <span style="color: var(--uabc-green); font-weight: 800;">● Activa y lista para escanear en el recuadro guía sin recargar</span>
+                    </div>
                 </div>
 
-                <div class="modal-buttons" style="width: 100%; max-width: 580px; justify-content: center; border-top: none; margin-top: 6px;">
-                    <button type="button" class="btn btn-primary" onclick="finalizarFlujoYRegresarAPrincipal()" style="padding: 13px 38px; font-size: 1rem; font-weight: 800;">
+                <div class="modal-buttons" style="width: 100%; max-width: 720px; justify-content: center; border-top: none; margin-top: 2px; padding-top: 4px;">
+                    <button type="button" class="btn btn-primary" onclick="finalizarFlujoYRegresarAPrincipal()" style="padding: 12px 38px; font-size: 1rem; font-weight: 800;">
                         Aceptar
                     </button>
                 </div>
@@ -3469,6 +3497,7 @@
             const btnConfirmForm = document.getElementById('flow-btn-confirmar-form');
             const txtSistema = document.getElementById('flow-textarea-sistema');
             const txtProg = document.getElementById('flow-textarea-programador');
+            const chkManual = document.getElementById('flow-checkbox-info-manual');
             const txtCode = document.getElementById('flow-anim-code-box');
             const iframe = document.getElementById('flow-anim-preview-iframe');
             const barMind = document.getElementById('flow-mind-progress-bar');
@@ -3489,6 +3518,8 @@
             }
             if (txtSistema) txtSistema.value = '';
             if (txtProg) txtProg.value = '';
+            if (chkManual) chkManual.checked = false;
+            alternarModoEdicionManualContenido(false);
             if (txtCode) txtCode.value = '';
             if (iframe) iframe.srcdoc = '';
             if (barMind) barMind.style.width = '0%';
@@ -3576,7 +3607,96 @@
             limpiarCamposDOMFlujoCreacion();
         }
 
+        // Control por casilla (checkbox) para habilitar la información manual y atenuar en gris el análisis del sistema
+        function alternarModoEdicionManualContenido(habilitarManual) {
+            const esManual = Boolean(habilitarManual);
+            const chk = document.getElementById('flow-checkbox-info-manual');
+            const txtSistema = document.getElementById('flow-textarea-sistema');
+            const txtProg = document.getElementById('flow-textarea-programador');
+            const badgeSistema = document.getElementById('flow-badge-estado-sistema');
+            const labelSistema = document.getElementById('flow-label-sistema');
+            const hintProg = document.getElementById('flow-hint-programador');
+            const btnCopiar = document.getElementById('flow-btn-copiar-sistema');
+
+            if (chk && chk.checked !== esManual) {
+                chk.checked = esManual;
+            }
+
+            if (esManual) {
+                // Casilla SÍ marcada: habilitar cuadro manual y poner el texto del sistema en color gris desactivado
+                if (txtProg) {
+                    txtProg.disabled = false;
+                    txtProg.readOnly = false;
+                    txtProg.style.background = '#ffffff';
+                    txtProg.style.color = '#0f172a';
+                    txtProg.style.borderColor = 'var(--uabc-green)';
+                    txtProg.style.cursor = 'text';
+                    txtProg.focus();
+                }
+                if (txtSistema) {
+                    txtSistema.style.background = '#e2e8f0';
+                    txtSistema.style.color = '#94a3b8';
+                    txtSistema.style.borderColor = '#cbd5e1';
+                    txtSistema.style.opacity = '0.68';
+                }
+                if (labelSistema) {
+                    labelSistema.style.color = '#64748b';
+                }
+                if (badgeSistema) {
+                    badgeSistema.textContent = '○ IGNORADO (Se usará información manual)';
+                    badgeSistema.style.background = '#e2e8f0';
+                    badgeSistema.style.color = '#64748b';
+                    badgeSistema.style.borderColor = '#cbd5e1';
+                }
+                if (hintProg) {
+                    hintProg.textContent = 'Casilla marcada: escribe aquí la información manual definitiva que tomará el sistema al confirmar.';
+                    hintProg.style.color = 'var(--uabc-green)';
+                }
+                if (btnCopiar) {
+                    btnCopiar.disabled = false;
+                    btnCopiar.style.opacity = '1';
+                    btnCopiar.style.cursor = 'pointer';
+                }
+            } else {
+                // Casilla NO marcada: bloquear cuadro editable y mantener activo el texto del sistema
+                if (txtProg) {
+                    txtProg.disabled = true;
+                    txtProg.readOnly = true;
+                    txtProg.style.background = '#f1f5f9';
+                    txtProg.style.color = '#94a3b8';
+                    txtProg.style.borderColor = '#cbd5e1';
+                    txtProg.style.cursor = 'not-allowed';
+                }
+                if (txtSistema) {
+                    txtSistema.style.background = '#ffffff';
+                    txtSistema.style.color = '#0f172a';
+                    txtSistema.style.borderColor = 'var(--uabc-blue)';
+                    txtSistema.style.opacity = '1';
+                }
+                if (labelSistema) {
+                    labelSistema.style.color = 'var(--uabc-blue)';
+                }
+                if (badgeSistema) {
+                    badgeSistema.textContent = '● ACTIVO (Se usará al confirmar)';
+                    badgeSistema.style.background = '#dcfce7';
+                    badgeSistema.style.color = 'var(--uabc-green)';
+                    badgeSistema.style.borderColor = '#86efac';
+                }
+                if (hintProg) {
+                    hintProg.textContent = 'Casilla desmarcada: este cuadro está bloqueado y se utilizará el análisis detallado del sistema. Marca la casilla para habilitarlo.';
+                    hintProg.style.color = 'var(--text-muted)';
+                }
+                if (btnCopiar) {
+                    btnCopiar.disabled = true;
+                    btnCopiar.style.opacity = '0.5';
+                    btnCopiar.style.cursor = 'not-allowed';
+                }
+            }
+        }
+
         function copiarTextoSistemaAPersonalizado() {
+            const chk = document.getElementById('flow-checkbox-info-manual');
+            if (!chk || !chk.checked) return;
             const txtSistema = document.getElementById('flow-textarea-sistema');
             const txtProg = document.getElementById('flow-textarea-programador');
             if (txtSistema && txtProg) {
@@ -3719,6 +3839,7 @@
                     if (thumbEl) thumbEl.src = resultadoAnalisis.fotoDataUrl || '';
                     if (txtSistema) txtSistema.value = resultadoAnalisis.analisisSistema;
                     if (txtProg) txtProg.value = '';
+                    alternarModoEdicionManualContenido(false);
 
                     flujoCreacionSM.transitionTo('review_mind', {
                         mindFile: mindFileGenerado,
@@ -3726,10 +3847,13 @@
                         analisisSistema: resultadoAnalisis.analisisSistema,
                         descripcionEditableSugerida: resultadoAnalisis.descripcionEditableSugerida,
                         temaDetectado: resultadoAnalisis.temaDetectado,
+                        subtemasDetectados: resultadoAnalisis.subtemasDetectados || [],
+                        datosClaveDetectados: resultadoAnalisis.datosClaveDetectados || [],
                         conceptosClave: resultadoAnalisis.conceptosClave,
                         pasosFlujo: resultadoAnalisis.pasosFlujo,
                         metricasVisuales: resultadoAnalisis.metricasVisuales,
-                        varianteIndex: indiceInicialVariante
+                        varianteIndex: indiceInicialVariante,
+                        modoInformacionManual: false
                     });
                 }, 260);
             } catch (err) {
@@ -3739,18 +3863,24 @@
             }
         }
 
-        // Paso 3 -> Paso 4: Confirmar contenido de la diapositiva y pasar a Pantalla de carga 2 (Creación de animación)
-        // Si el programador escribió/editó en el segundo cuadro, se guarda el texto editado; si no se modificó, se guarda el del sistema.
+        // Paso 3 -> Paso 4: Confirmar contenido de la diapositiva según el estado de la casilla de verificación
         function confirmarContenidoYGenerarAnimacion() {
             if (flujoCreacionSM.getState() !== 'review_mind') return;
 
+            const chkManual = document.getElementById('flow-checkbox-info-manual');
+            const usarManual = Boolean(chkManual && chkManual.checked);
             const txtProg = document.getElementById('flow-textarea-programador');
             const txtSistema = document.getElementById('flow-textarea-sistema');
             const textoProgramador = (txtProg && txtProg.value ? txtProg.value : '').trim();
             const textoSistema = (txtSistema && txtSistema.value ? txtSistema.value : (flujoCreacionSM.getContext().analisisSistema || '')).trim();
 
-            const huboEdicionProgramador = textoProgramador.length > 0 && textoProgramador !== textoSistema;
-            const descripcionDefinitiva = huboEdicionProgramador ? textoProgramador : textoSistema;
+            if (usarManual && !textoProgramador) {
+                alert("Has marcado la casilla 'Ingresar información manual'. Por favor escribe el contenido de la diapositiva en el cuadro habilitado, o desmarca la casilla para usar el análisis del sistema.");
+                if (txtProg) txtProg.focus();
+                return;
+            }
+
+            const descripcionDefinitiva = usarManual ? textoProgramador : textoSistema;
 
             if (!descripcionDefinitiva) {
                 alert("No hay información de contenido para la diapositiva.");
@@ -3759,7 +3889,8 @@
 
             flujoCreacionSM.updateContext({
                 descripcionConfirmada: descripcionDefinitiva,
-                fueEditadaPorProgramador: huboEdicionProgramador
+                modoInformacionManual: usarManual,
+                fueEditadaPorProgramador: usarManual
             });
 
             ejecutarCargaYGeneracionAnimacion(false);
@@ -3917,6 +4048,11 @@
                     document.getElementById('flow-done-diap').textContent = ctx.nombreDiapositiva;
                     document.getElementById('flow-done-mind').textContent = `Modelos_AR/${ctx.nombreArchivoMind}`;
                     document.getElementById('flow-done-desc').textContent = ctx.descripcionConfirmada;
+                    const doneThumb = document.getElementById('flow-done-thumb');
+                    if (doneThumb && ctx.fotoDataUrl) {
+                        doneThumb.src = ctx.fotoDataUrl;
+                        doneThumb.style.display = 'block';
+                    }
 
                     flujoCreacionSM.transitionTo('completed');
                 }, 420);

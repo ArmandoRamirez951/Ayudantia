@@ -65,12 +65,45 @@ body {
 
 /* El recuadro del escáner en el centro */
 .scanner-frame {
-    width: 300px;
-    height: 200px;
+    width: min(82vw, 340px);
+    height: min(54vw, 225px);
     position: relative;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.72);
     border-radius: 12px;
     z-index: 15;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.scanner-frame.frame-locked {
+    box-shadow: 0 0 24px rgba(34, 197, 94, 0.45), 0 0 0 9999px rgba(0, 0, 0, 0.28);
+}
+
+.scanner-frame.frame-locked .corner {
+    border-color: #22c55e;
+}
+
+.scanner-focus-hint {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #fef08a;
+    background: rgba(9, 36, 104, 0.85);
+    border: 1px solid rgba(245, 179, 22, 0.65);
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    transition: all 0.25s ease;
+}
+
+.scanner-frame.frame-locked .scanner-focus-hint {
+    background: rgba(0, 132, 61, 0.92);
+    border-color: #86efac;
+    color: #ffffff;
 }
 
 /* Esquinas decorativas del escáner */
@@ -80,12 +113,76 @@ body {
     height: 30px;
     border-color: #f5b316;
     border-style: solid;
+    transition: border-color 0.25s ease;
 }
 
 .corner.tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 10px; }
 .corner.tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 10px; }
 .corner.bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 10px; }
 .corner.br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 10px; }
+
+/* Barra flotante de Zoom para cámara en dispositivos móviles */
+#camera-zoom-controls {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(9, 36, 104, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid #f5b316;
+    border-radius: 999px;
+    padding: 7px 14px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+    pointer-events: auto;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.zoom-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.zoom-btn:active {
+    background: #00843d;
+    transform: scale(0.94);
+}
+
+#camera-zoom-slider {
+    width: 120px;
+    accent-color: #f5b316;
+    cursor: pointer;
+}
+
+.zoom-badge {
+    background: #00843d;
+    color: #ffffff;
+    border: 1px solid #86efac;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    min-width: 48px;
+    text-align: center;
+}
 
 .hidden {
     opacity: 0;

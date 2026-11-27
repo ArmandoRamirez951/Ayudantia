@@ -98,11 +98,24 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    function cambiarVisibilidadHijosTarget(targetEl, visible) {
+        if (!targetEl) return;
+        const hijos = targetEl.children;
+        for (let i = 0; i < hijos.length; i++) {
+            const hijo = hijos[i];
+            if (hijo.object3D) {
+                hijo.object3D.visible = Boolean(visible);
+            }
+            hijo.setAttribute('visible', visible ? 'true' : 'false');
+        }
+    }
+
     function aplicarEntidadesTargetEnEscena(lista) {
         // 1. Primera diapositiva en #ar-content (targetIndex: 0)
+        // IMPORTANTE: Nunca llamar arContent.setAttribute('visible', 'false') sobre el contenedor mindar-image-target,
+        // porque MindAR utiliza el.object3D.visible internamente para emitir targetFound / targetLost.
         const primeraDiapo = lista[0];
         if (arContent && primeraDiapo && primeraDiapo.codigoAnimacion) {
-            arContent.setAttribute('visible', 'false');
             arContent.innerHTML = primeraDiapo.codigoAnimacion;
         }
 
@@ -114,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 extraEntity = document.createElement('a-entity');
                 extraEntity.setAttribute('id', `ar-content-${i}`);
                 extraEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
-                extraEntity.setAttribute('visible', 'false');
                 sceneEl.appendChild(extraEntity);
             }
             extraEntity.innerHTML = diapoExtra.codigoAnimacion;
@@ -131,11 +143,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // 4. Purgar referencias desconectadas en mindar-image-system
+        // 4. Purgar únicamente referencias cuyo elemento DOM (item.el.el) ya no esté conectado al documento
+        // NOTA: En mindar-image-system, item.el es la instancia del componente mindar-image-target y item.el.el es el nodo DOM <a-entity>
         const mindarSystem = sceneEl.systems && sceneEl.systems['mindar-image-system'];
         if (mindarSystem && Array.isArray(mindarSystem.anchorEntities)) {
             mindarSystem.anchorEntities = mindarSystem.anchorEntities.filter(
-                item => item && item.el && item.el.isConnected
+                item => item && item.el && item.el.el && item.el.el.isConnected
             );
         }
     }
@@ -281,7 +294,101 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, 4500);
 
-    // Motor de cambio de color dinámico para los textos 3D del Método Científico
+    // =========================================================================
+    // ENFOQUE EN EL CUADRO GUÍA (.scanner-frame) Y ZOOM MÓVIL REAL EN MINDAR
+    // =========================================================================
+    const scannerFrame = document.getElementById('scanner-guide-frame') || document.querySelector('.scanner-frame');
+    const scannerFocusBadge = document.getElementById('scanner-focus-badge');
+    let targetDetectadoActual = null;
+    let animacionMostradaEnCuadro = false;
+
+    function obtenerThreeCameraActiva() {
+        const aCam = document.querySelector('a-camera');
+        if (aCam && typeof aCam.getObject3D === 'function') {
+            const camObj = aCam.getObject3D('camera');
+            if (camObj) return camObj;
+        }
+        return sceneEl && sceneEl.camera ? sceneEl.camera : null;
+    }
+
+    // Verifica si la diapositiva detectada está alineada dentro del cuadro guía (.scanner-frame)
+    function estaTargetEnfocadoDentroDelCuadro(targetEl) {
+        if (!targetEl || !scannerFrame) return true;
+        const rect = scannerFrame.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) return true;
+
+        try {
+            const obj3D = targetEl.object3D;
+            const threeCamera = obtenerThreeCameraActiva();
+            if (!obj3D || !obj3D.matrix || !threeCamera || typeof AFRAME === 'undefined') {
+                return true;
+            }
+
+            const elms = obj3D.matrix.elements;
+            // En MindAR, invisibleMatrix tiene todos sus elementos en 0 (elms[15] === 0).
+            // Además, targetFound se emite justo un instante antes de asignar obj3D.matrix = t.
+            if (!elms || elms[15] === 0 || (elms[12] === 0 && elms[13] === 0 && elms[14] === 0)) {
+                return true;
+            }
+
+            // En MindAR A-Frame, obj3D.matrix ya está en coordenadas de la cámara (post-multiplicada por postMatrix en el centro del marcador)
+            const posCamSpace = new AFRAME.THREE.Vector3(elms[12], elms[13], elms[14]);
+            const ndc = posCamSpace.clone().applyMatrix4(threeCamera.projectionMatrix);
+
+            // Si la proyección devuelve NaN o fuera de rango válido, permitir visualización
+            if (isNaN(ndc.x) || isNaN(ndc.y)) {
+                return true;
+            }
+
+            const screenX = (ndc.x * 0.5 + 0.5) * window.innerWidth;
+            const screenY = (-ndc.y * 0.5 + 0.5) * window.innerHeight;
+
+            // Margen amplio y cómodo alrededor del cuadro guía (38% de tolerancia) para que al encuadrar la diapositiva
+            // dentro o sobre el marco se active de inmediato sin parpadeos por movimiento de la mano.
+            const padX = rect.width * 0.38;
+            const padY = rect.height * 0.38;
+
+            const dentroHorizontal = screenX >= (rect.left - padX) && screenX <= (rect.right + padX);
+            const dentroVertical = screenY >= (rect.top - padY) && screenY <= (rect.bottom + padY);
+
+            return dentroHorizontal && dentroVertical;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    function actualizarVisibilidadPorEnfoqueEnCuadro() {
+        if (!targetDetectadoActual) return;
+
+        const enfocadoEnCuadro = estaTargetEnfocadoDentroDelCuadro(targetDetectadoActual);
+        const todosLosTargets = sceneEl.querySelectorAll('[mindar-image-target]');
+
+        if (enfocadoEnCuadro) {
+            todosLosTargets.forEach(el => {
+                cambiarVisibilidadHijosTarget(el, el === targetDetectadoActual);
+            });
+            if (scannerText) scannerText.style.display = 'none';
+            if (scannerFrame) scannerFrame.classList.add('frame-locked');
+            if (scannerFocusBadge) scannerFocusBadge.textContent = '✓ Diapositiva enfocada • Animación activa';
+            animacionMostradaEnCuadro = true;
+        } else {
+            todosLosTargets.forEach(el => {
+                cambiarVisibilidadHijosTarget(el, false);
+            });
+            if (scannerFrame) scannerFrame.classList.remove('frame-locked');
+            if (scannerText) {
+                scannerText.style.display = 'block';
+                scannerText.innerHTML = `
+                    <h2>🎯 Centra la Diapositiva</h2>
+                    <p>Ubica la diapositiva dentro del recuadro para activar la animación</p>
+                `;
+            }
+            if (scannerFocusBadge) scannerFocusBadge.textContent = 'Centra la diapositiva dentro del marco';
+            animacionMostradaEnCuadro = false;
+        }
+    }
+
+    // Motor de cambio de color dinámico a 60 FPS + verificación continua de enfoque en el cuadro guía
     let hueCromatico = 180;
     function animarColoresTexto() {
         hueCromatico = (hueCromatico + 1.2) % 360;
@@ -304,36 +411,246 @@ document.addEventListener("DOMContentLoaded", () => {
             textosAcento[i].setAttribute('color', colorAcento);
         }
 
+        // Verificar si algún target está actualmente visible para MindAR
+        const mindarSystem = sceneEl && sceneEl.systems && sceneEl.systems['mindar-image-system'];
+        if (mindarSystem && Array.isArray(mindarSystem.anchorEntities)) {
+            let activo = null;
+            for (let i = 0; i < mindarSystem.anchorEntities.length; i++) {
+                const item = mindarSystem.anchorEntities[i];
+                if (item && item.el && item.el.el && item.el.el.object3D && item.el.el.object3D.visible) {
+                    activo = item.el.el;
+                    break;
+                }
+            }
+            if (activo) {
+                targetDetectadoActual = activo;
+            }
+        }
+
+        if (targetDetectadoActual) {
+            actualizarVisibilidadPorEnfoqueEnCuadro();
+        }
+
+        // Asegurar que el gancho de zoom en el inputLoader de MindAR esté instalado cuando el controlador esté listo
+        instalarHookZoomEnMindARInputLoader();
+
         requestAnimationFrame(animarColoresTexto);
     }
     requestAnimationFrame(animarColoresTexto);
 
-    // Cuando cualquier diapositiva es detectada por la cámara (cambia en tiempo real sin recargar la página)
+    // Cuando cualquier diapositiva es detectada por la cámara
     sceneEl.addEventListener("targetFound", event => {
-        console.log("¡Diapositiva detectada!");
-        if (scannerText) scannerText.style.display = 'none';
-        // Ocultar cualquier otra diapositiva previa y mostrar únicamente la diapositiva enfocada actualmente
-        const todosLosTargets = sceneEl.querySelectorAll('[mindar-image-target]');
-        todosLosTargets.forEach(el => {
-            if (event && event.target && el === event.target) {
-                el.setAttribute('visible', 'true');
-            } else {
-                el.setAttribute('visible', 'false');
-            }
-        });
-        if (!event || !event.target) {
-            if (arContent) arContent.setAttribute('visible', 'true');
+        console.log("¡Diapositiva detectada por MindAR!");
+        targetDetectadoActual = (event && event.target) ? event.target : arContent;
+        actualizarVisibilidadPorEnfoqueEnCuadro();
+        if (finishedMsg) finishedMsg.style.display = 'none';
+    });
+
+    // Cuando la diapositiva se pierde de vista
+    sceneEl.addEventListener("targetLost", event => {
+        console.log("Se perdió la diapositiva de vista.");
+        if (event && event.target) {
+            cambiarVisibilidadHijosTarget(event.target, false);
+        }
+        if (!event || !event.target || event.target === targetDetectadoActual) {
+            targetDetectadoActual = null;
+            animacionMostradaEnCuadro = false;
+        }
+        if (scannerFrame) scannerFrame.classList.remove('frame-locked');
+        if (scannerFocusBadge) scannerFocusBadge.textContent = 'Encuadra la diapositiva aquí';
+        if (scannerText) {
+            scannerText.style.display = 'block';
+            scannerText.innerHTML = `
+                <h2>📷 Escanea la Diapositiva</h2>
+                <p>Alinea y enfoca la diapositiva dentro del recuadro</p>
+            `;
         }
         if (finishedMsg) finishedMsg.style.display = 'none';
     });
 
-    // Cuando la diapositiva se pierde de vista (por ejemplo, al cambiar a la siguiente diapositiva)
-    sceneEl.addEventListener("targetLost", event => {
-        console.log("Se perdió la diapositiva de vista.");
-        if (event && event.target) {
-            event.target.setAttribute('visible', 'false');
+    // =========================================================================
+    // SOPORTE DE ZOOM DE CÁMARA EN TELÉFONOS MÓVILES (PELLIZCO TÁCTIL + SLIDER)
+    // Conecta tanto el zoom de hardware como el recorte central del detector MindAR
+    // =========================================================================
+    const zoomSlider = document.getElementById('camera-zoom-slider');
+    const zoomBadge = document.getElementById('camera-zoom-badge');
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+
+    let zoomActual = 1.0;
+    let zoomDigitalEfectivo = 1.0;
+    const ZOOM_MIN = 1.0;
+    const zoomMaxPermitido = 4.0;
+    let distanciaPellizcoInicial = null;
+    let zoomAlIniciarPellizco = 1.0;
+    let aplicandoConstraintZoom = false;
+
+    function obtenerVideoMindAR() {
+        const mindarSystem = sceneEl && sceneEl.systems && sceneEl.systems['mindar-image-system'];
+        if (mindarSystem && mindarSystem.video) return mindarSystem.video;
+        return document.querySelector('video');
+    }
+
+    // Intercepta loadInput(video) de MindAR para que cuando exista zoom digital (zoomDigitalEfectivo > 1),
+    // MindAR analice exactamente la región central ampliada que el usuario ve en pantalla.
+    function instalarHookZoomEnMindARInputLoader() {
+        const mindarSystem = sceneEl && sceneEl.systems && sceneEl.systems['mindar-image-system'];
+        const loader = mindarSystem && mindarSystem.controller && mindarSystem.controller.inputLoader;
+        if (!loader || loader.__zoomHookInstalado || !loader.context || !loader.context.canvas) {
+            return;
         }
-        if (scannerText) scannerText.style.display = 'block';
-        if (finishedMsg) finishedMsg.style.display = 'none';
-    });
+
+        const ctx = loader.context;
+        const origDrawImage = ctx.drawImage.bind(ctx);
+
+        ctx.drawImage = function (img, ...args) {
+            const z = zoomDigitalEfectivo;
+            if (z > 1.01 && img && (img.videoWidth || img.width)) {
+                const srcW = img.videoWidth || img.width;
+                const srcH = img.videoHeight || img.height;
+                const cropW = srcW / z;
+                const cropH = srcH / z;
+                const cropX = (srcW - cropW) / 2;
+                const cropY = (srcH - cropH) / 2;
+
+                if (args.length === 2) {
+                    // Caso rotado 90 grados: drawImage(t, -t.width/2, -t.height/2)
+                    return origDrawImage(img, cropX, cropY, cropW, cropH, args[0], args[1], img.width || srcW, img.height || srcH);
+                } else if (args.length === 4) {
+                    // Caso normal: drawImage(t, 0, 0, t.width, t.height)
+                    return origDrawImage(img, cropX, cropY, cropW, cropH, args[0], args[1], args[2], args[3]);
+                }
+            }
+            return origDrawImage(img, ...args);
+        };
+
+        loader.__zoomHookInstalado = true;
+        console.log("Hook de Zoom óptico/digital instalado en el detector de MindAR.");
+    }
+
+    function aplicarZoomVisualInmediato(escalaDigital) {
+        zoomDigitalEfectivo = Math.max(1.0, escalaDigital);
+        const videoEl = obtenerVideoMindAR();
+        if (videoEl) {
+            videoEl.style.transformOrigin = 'center center';
+            videoEl.style.transform = zoomDigitalEfectivo > 1.01 ? `scale(${zoomDigitalEfectivo})` : '';
+        }
+    }
+
+    function aplicarZoomCamara(nuevoZoom) {
+        const z = Math.min(zoomMaxPermitido, Math.max(ZOOM_MIN, Math.round(nuevoZoom * 100) / 100));
+        zoomActual = z;
+
+        if (zoomSlider) zoomSlider.value = String(z);
+        if (zoomBadge) zoomBadge.textContent = `${z.toFixed(1)}x`;
+
+        // 1. Aplicar respuesta visual inmediata a 60 FPS y recorte sincronizado en el detector de MindAR
+        aplicarZoomVisualInmediato(z);
+        instalarHookZoomEnMindARInputLoader();
+
+        // 2. Si la cámara del teléfono soporta zoom óptico nativo por hardware, sincronizarlo sin bloquear la UI
+        const videoEl = obtenerVideoMindAR();
+        if (!aplicandoConstraintZoom && videoEl && videoEl.srcObject && typeof videoEl.srcObject.getVideoTracks === 'function') {
+            const tracks = videoEl.srcObject.getVideoTracks();
+            if (tracks && tracks.length > 0) {
+                const track = tracks[0];
+                try {
+                    if (typeof track.getCapabilities === 'function') {
+                        const caps = track.getCapabilities();
+                        if (caps && typeof caps.zoom === 'object' && caps.zoom.max > caps.zoom.min) {
+                            const hwMin = caps.zoom.min || 1;
+                            const hwMax = caps.zoom.max || 4;
+                            const hwTarget = Math.min(hwMax, Math.max(hwMin, z));
+                            aplicandoConstraintZoom = true;
+                            track.applyConstraints({ advanced: [{ zoom: hwTarget }] })
+                                .then(() => {
+                                    const settings = typeof track.getSettings === 'function' ? track.getSettings() : {};
+                                    const realHwZoom = (settings && typeof settings.zoom === 'number' && settings.zoom >= 1)
+                                        ? settings.zoom
+                                        : 1.0;
+                                    // Si el lente físico ya aplicó parte o todo el zoom, compensar la escala digital restante
+                                    aplicarZoomVisualInmediato(zoomActual / realHwZoom);
+                                })
+                                .catch(() => {
+                                    aplicarZoomVisualInmediato(zoomActual);
+                                })
+                                .finally(() => {
+                                    aplicandoConstraintZoom = false;
+                                });
+                        }
+                    }
+                } catch (e) {
+                    aplicandoConstraintZoom = false;
+                }
+            }
+        }
+    }
+
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', (e) => {
+            aplicarZoomCamara(parseFloat(e.target.value) || 1.0);
+        });
+        zoomSlider.addEventListener('change', (e) => {
+            aplicarZoomCamara(parseFloat(e.target.value) || 1.0);
+        });
+    }
+    if (btnZoomIn) {
+        btnZoomIn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            aplicarZoomCamara(zoomActual + 0.3);
+        });
+    }
+    if (btnZoomOut) {
+        btnZoomOut.addEventListener('click', (e) => {
+            e.stopPropagation();
+            aplicarZoomCamara(zoomActual - 0.3);
+        });
+    }
+    if (zoomBadge) {
+        zoomBadge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            aplicarZoomCamara(1.0);
+        });
+    }
+
+    // Gestos táctiles de pellizco (Pinch-to-Zoom) con 2 dedos en fase de captura (capture: true, passive: false)
+    // para que el canvas WebGL de A-Frame no bloquee el gesto en teléfonos móviles.
+    function calcularDistanciaEntreDedos(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+    }
+
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 2) {
+            distanciaPellizcoInicial = calcularDistanciaEntreDedos(e.touches);
+            zoomAlIniciarPellizco = zoomActual;
+        }
+    }, { passive: false, capture: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches.length === 2 && distanciaPellizcoInicial > 8) {
+            if (e.cancelable) e.preventDefault();
+            const distanciaActual = calcularDistanciaEntreDedos(e.touches);
+            const factor = distanciaActual / distanciaPellizcoInicial;
+            aplicarZoomCamara(zoomAlIniciarPellizco * factor);
+        }
+    }, { passive: false, capture: true });
+
+    document.addEventListener('touchend', (e) => {
+        if (!e.touches || e.touches.length < 2) {
+            distanciaPellizcoInicial = null;
+        }
+    }, { passive: true, capture: true });
+
+    document.addEventListener('touchcancel', () => {
+        distanciaPellizcoInicial = null;
+    }, { passive: true, capture: true });
+
+    // Soporte adicional con rueda del mouse en escritorio para pruebas rápidas de zoom
+    window.addEventListener('wheel', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#camera-zoom-controls')) return;
+        const delta = e.deltaY < 0 ? 0.2 : -0.2;
+        aplicarZoomCamara(zoomActual + delta);
+    }, { passive: true });
 });
